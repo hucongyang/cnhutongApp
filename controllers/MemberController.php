@@ -52,7 +52,7 @@ class MemberController extends ApiPublicController
     /**
      * 注册       actionRegister()
      * @param $mobile int 手机号码
-     * @param $password string 密码（未加密）
+     * @param $password string 密码（md5加密）
      * @checkNum $checkNum int 服务器发送的验证码
      * @return $result          调用返回结果
      * @return $msg             调用返回结果说明
@@ -111,12 +111,12 @@ class MemberController extends ApiPublicController
         $password = Yii::app()->request->getParam('password', NULL);
 
         if(!$this->isMobile($mobile)) {
-            $this->_return('MSG_ERR_FAIL_PARAM');
+            $this->_return('MSG_ERR_FAIL_MOBILE');
         }
 
-        if(!$this->isPasswordValid($password)) {
-            $this->_return('MSG_ERR_FAIL_PARAM');
-        }
+//        if(!$this->isPasswordValid($password)) {
+//            $this->_return('MSG_ERR_FAIL_PARAM');
+//        }
 
         $data = User::model()->login($mobile, $password);
         if($data === 10006) {

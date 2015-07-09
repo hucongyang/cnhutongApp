@@ -30,7 +30,7 @@ class UserMember extends CActiveRecord
             }
             foreach($member_model as $row) {
                 $aMembers[] = array(
-                    'id' => $row['id'],
+                    'name' => '秦汉胡同',
                     'memberId' => $row['member_id'],
                     'memberStatus' => $row['status']
                 );

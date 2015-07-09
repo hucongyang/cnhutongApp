@@ -25,6 +25,10 @@ $_error_code = array(
 
         'MSG_ERR_FAIL_TOKEN'     => array('10009', '传入的token错误'),
 
+        'MSG_ERR_FAIL_USER'         => array('10010', '传入的用户ID错误'),
+
+        'MSG_ERR_FAIL_MOBILE'       => array('10011', '手机号码错误'),
+
 		// 用户相关错误码
         'MSG_NO_MEMBER' 			=> array('20001', '没有找到该姓名的用户'),
         'MSG_NO_LESSON' 			=> array('20002', '该学员当天没有课程'),

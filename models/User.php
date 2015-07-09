@@ -21,7 +21,7 @@ class User extends CActiveRecord
      */
     public function register($mobile, $password, $checkNum)
     {
-        $passwordMd5 = md5($password);
+//        $passwordMd5 = md5($password);
         $data = array();
         try {
             if(User::getUserByMobile($mobile)) {
@@ -40,7 +40,7 @@ class User extends CActiveRecord
                 ->insert('user',
                     array(
                         'mobile' => $mobile,
-                        'password' => $passwordMd5,
+                        'password' => $password,
                         'register_time' => $registerTime,
                         'register_ip' => $registerIp,
                         'last_login_time' => $lastLoginTime,
@@ -107,14 +107,14 @@ class User extends CActiveRecord
      */
     public function login($mobile, $password)
     {
-        $passwordMd5 = md5($password);
+//        $passwordMd5 = md5($password);
         $data = array();
         try {
             $user = self::getUserByMobile($mobile);
             if(!$user) {
                 return 10006;           // MSG_ERR_UN_REGISTER_MOBILE
             }
-            $userId = self::getUserByMobilePassword($mobile, $passwordMd5);
+            $userId = self::getUserByMobilePassword($mobile, $password);
             if(!$userId) {
                 return 10007;           //  MSG_ERR_FAIL_PASSWORD
             }
@@ -186,7 +186,7 @@ class User extends CActiveRecord
      */
     public function resetPassword($mobile, $password, $checkNum)
     {
-        $passwordMd5 = md5($password);
+//        $passwordMd5 = md5($password);
         $data = array();
         try {
             $userId = self::getUserByMobile($mobile);
@@ -201,7 +201,7 @@ class User extends CActiveRecord
             Yii::app()->cnhutong_user->createCommand()
                 ->update('user',
                     array(
-                        'password' => $passwordMd5,
+                        'password' => $password,
                     ),
                     'mobile = :mobile',
                     array(':mobile' => $mobile)
