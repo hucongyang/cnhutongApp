@@ -77,4 +77,46 @@ class ApiPublicLesson extends CActiveRecord
         }
         return $departmentInfo;
     }
+
+    /**
+     * 输入 memberId
+     * 输出 对应姓名
+     * @param $memberId
+     * @return string
+     */
+    public function getNameByMemberId($memberId)
+    {
+        $name = '';
+        try {
+            $name = Yii::app()->cnhutong->createCommand()
+                ->select('name')
+                ->from('ht_member')
+                ->where('id = :memberId', array(':memberId' => $memberId))
+                ->queryScalar();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $name;
+    }
+
+    /**
+     * 输入 lesson_arrange_id
+     * 输出 课程对应的总课时数
+     * @param $lessonArrangeId
+     * @return string
+     */
+    public function getLessonCount($lessonArrangeId)
+    {
+        $lessonCount = '';
+        try {
+            $lessonCount = Yii::app()->cnhutong->createCommand()
+                ->select('cnt')
+                ->from('ht_lesson_arrange_rules')
+                ->where('id = :arrangeId', array(':arrangeId' => $lessonArrangeId))
+                ->queryScalar();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $lessonCount;
+    }
 }

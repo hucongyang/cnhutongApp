@@ -70,4 +70,29 @@ class LessonController extends ApiPublicController
 
         $this->_return('MSG_SUCCESS', $data);
     }
+
+    public function actionGetSubjectSchedule()
+    {
+        // 检查参数
+        if(!isset($_REQUEST['userId']) || !isset($_REQUEST['token'])
+            || !isset($_REQUEST['memberId']) || !isset($_REQUEST['lessonArrangeId']))
+        {
+            $this->_return('MSG_ERR_LESS_PARAM');
+        }
+
+        $userId = Yii::app()->request->getParam('userId', NULL);
+        $token = Yii::app()->request->getParam('token', NULL);
+        $memberId = Yii::app()->request->getParam('memberId', NULL);
+        $lessonArrangeId = Yii::app()->request->getParam('lessonArrangeId', NULL);
+
+        $data = HtLessonStudent::model()->SubjectSchedule($userId, $token, $memberId, $lessonArrangeId);
+        if($data === 10010) {
+            $this->_return('MSG_ERR_FAIL_USER');
+        } elseif ($data === 10009) {
+            $this->_return('MSG_ERR_FAIL_TOKEN');
+        }
+        // 记录log
+
+        $this->_return('MSG_SUCCESS', $data);
+    }
 }
