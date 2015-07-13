@@ -9,9 +9,9 @@ class LessonController extends ApiPublicController
      * @param $userId       -- 用户ID
      * @param $token        -- 用户验证token
      * @param $memberId     -- 用户当前绑定的学员所对应的ID
-     * @return $result          调用返回结果
-     * @return $msg             调用返回结果说明
-     * @return $data             调用返回数据
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
      */
     public function actionGetNextLessonList()
     {
@@ -43,9 +43,9 @@ class LessonController extends ApiPublicController
      * @param $userId       -- 用户ID
      * @param $token        -- 用户验证token
      * @param $memberId     -- 用户当前绑定的学员所对应的ID
-     * @return $result          调用返回结果
-     * @return $msg             调用返回结果说明
-     * @return $data             调用返回数据
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
      */
     public function actionGetAllSubjects()
     {

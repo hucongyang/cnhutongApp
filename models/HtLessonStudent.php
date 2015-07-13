@@ -52,8 +52,8 @@ class HtLessonStudent extends CActiveRecord
                         ':beginDate' => $nowTime
                     )
                 )
-//                ->group('course_id')
-                ->order('lessonSerial desc')
+                ->group('course_id')
+                ->order('lessonSerial asc')
                 ->queryAll();
 
             foreach($result as $row) {
@@ -73,7 +73,7 @@ class HtLessonStudent extends CActiveRecord
                 $lesson['departmentId']                      = $row['departmentId'];
                 $departmentInfo = ApiPublicLesson::model()->getDepartmentInfoById($lesson['departmentId']);
                 $lesson['departmentName']                    = $departmentInfo['name'];
-                $data['lesson'] = $lesson;
+                $data[] = $lesson;
             }
 
 //            $data = $result;
@@ -106,10 +106,8 @@ class HtLessonStudent extends CActiveRecord
             }
 
             $result = Yii::app()->cnhutong->createCommand()
-                ->select('id, course_id, lesson_arrange_id as lessonArrangeId, teacher_id as teacherId,
-                lesson_serial as lessonSerial,
-                department_id as departmentId')
-                ->from('ht_lesson_student')
+                ->select('id, course_id, teacher_id, cnt, department_id')
+                ->from('ht_lesson_arrange_rules')
                 ->where('student_id = :studentId',
                     array(
                         ':studentId' => $memberId
@@ -120,24 +118,54 @@ class HtLessonStudent extends CActiveRecord
             foreach($result as $row) {
                 // 获取数据
                 $subject = array();
-                $subject['id']                                 = $row['id'];
-                $subject['courseId']                          = $row['course_id'];
-                $subjectId = ApiPublicLesson::model()->getSubjectIdByCourseId($subject['courseId'] );
+                $subjectId = ApiPublicLesson::model()->getSubjectIdByCourseId($row['course_id']);
                 $subject['subjectId']                         = $subjectId;
-                $subject['lessonArrangeId']                  = $row['lessonArrangeId'];
+                $subject['lessonArrangeId']                  = $row['id'];
                 $subjectInfo = ApiPublicLesson::model()->getSubjectInfoById($subjectId);
                 $subject['subjectName']                       = $subjectInfo['title'];
-                $subject['teacherId']                           = $row['teacherId'];
-                $subject['teacherName']                         = ApiPublicLesson::model()->getNameByMemberId($row['teacherId']);
-                $subject['lessonSerial']                      = $row['lessonSerial'];
-                $lessonCount = ApiPublicLesson::model()->getLessonCount($subject['lessonArrangeId']);
-                $subject['lessonProcess']                      = $row['lessonSerial'] . '/' . $lessonCount;
-                $subject['lessonStatus']                      = $row['lessonSerial'];
-                $subject['departmentId']                      = $row['departmentId'];
+                $subject['teacherId']                           = $row['teacher_id'];
+                $subject['teacherName']                         = ApiPublicLesson::model()->getNameByMemberId($row['teacher_id']);
+                $subject['cnt']                                 = $row['cnt'];
+                $subject['lessonStatus']                        = 'status';
+                $subject['departmentId']                      = $row['department_id'];
                 $departmentInfo = ApiPublicLesson::model()->getDepartmentInfoById($subject['departmentId']);
                 $subject['departmentName']                    = $departmentInfo['name'];
-                $data['subject'] = $subject;
+                $data[] = $subject;
             }
+
+//            $result = Yii::app()->cnhutong->createCommand()
+//                ->select('id, course_id, lesson_arrange_id as lessonArrangeId, teacher_id as teacherId,
+//                lesson_serial as lessonSerial,
+//                department_id as departmentId')
+//                ->from('ht_lesson_student')
+//                ->where('student_id = :studentId',
+//                    array(
+//                        ':studentId' => $memberId
+//                    )
+//                )
+//                ->queryAll();
+//
+//            foreach($result as $row) {
+//                // 获取数据
+//                $subject = array();
+//                $subject['id']                                 = $row['id'];
+//                $subject['courseId']                          = $row['course_id'];
+//                $subjectId = ApiPublicLesson::model()->getSubjectIdByCourseId($subject['courseId'] );
+//                $subject['subjectId']                         = $subjectId;
+//                $subject['lessonArrangeId']                  = $row['lessonArrangeId'];
+//                $subjectInfo = ApiPublicLesson::model()->getSubjectInfoById($subjectId);
+//                $subject['subjectName']                       = $subjectInfo['title'];
+//                $subject['teacherId']                           = $row['teacherId'];
+//                $subject['teacherName']                         = ApiPublicLesson::model()->getNameByMemberId($row['teacherId']);
+//                $subject['lessonSerial']                      = $row['lessonSerial'];
+//                $lessonCount = ApiPublicLesson::model()->getLessonCount($subject['lessonArrangeId']);
+//                $subject['lessonProcess']                      = $row['lessonSerial'] . '/' . $lessonCount;
+//                $subject['lessonStatus']                      = $row['lessonSerial'];
+//                $subject['departmentId']                      = $row['departmentId'];
+//                $departmentInfo = ApiPublicLesson::model()->getDepartmentInfoById($subject['departmentId']);
+//                $subject['departmentName']                    = $departmentInfo['name'];
+//                $data['subject'] = $subject;
+//            }
 
 //            $data = $result;
         } catch (Exception $e) {
@@ -171,7 +199,7 @@ class HtLessonStudent extends CActiveRecord
 
             $result = Yii::app()->cnhutong->createCommand()
                 ->select('id as lessonStudentId, lesson_serial as lessonSerial,
-                date as lessonDate, time as lessonTime, student_comment')
+                date, time, step, student_comment')
                 ->from('ht_lesson_student')
                 ->where('student_id = :studentId And lesson_arrange_id = :lessonArrangeId',
                     array(
@@ -179,19 +207,19 @@ class HtLessonStudent extends CActiveRecord
                         ':lessonArrangeId' => $lessonArrangeId
                     )
                 )
-                ->order('lessonDate asc')
+                ->order('date asc')
                 ->queryAll();
 
             foreach($result as $row) {
                 // 获取数据
                 $lessons = array();
-                $lessons['lessonStudentId']                     = $row['id'];
+                $lessons['lessonStudentId']                     = $row['lessonStudentId'];
                 $lessons['lessonSerial']                        = $row['lessonSerial'];
-                $lessons['lessonDate']                          = $row['lessonDate'] . '/' . $row['lessonTime'];
+                $lessons['lessonDate']                          = $row['date'] . ' ' . $row['time'];
                 $lessons['lessonStatus']                        = self::getLessonStatus($row['step']);
                 $lessons['lessonCharge']                        = $row['student_comment'];
 
-                $data['lessons'] = $lessons;
+                $data[] = $lessons;
             }
 //            $data = $result;
         } catch (Exception $e) {
@@ -225,7 +253,7 @@ class HtLessonStudent extends CActiveRecord
             }
 
             $result = Yii::app()->cnhutong->createCommand()
-                ->select('id as lessonStudentId, lesson_serial as lessonSerial, date as lessonDate, time as lessonTime,
+                ->select('id as lessonStudentId, lesson_serial as lessonSerial, date, time,
                 step, teacher_id as teacherId, student_rating, student_comment, lesson_content')
                 ->from('ht_lesson_student')
                 ->where('student_id = :studentId And id = :id',
@@ -234,22 +262,28 @@ class HtLessonStudent extends CActiveRecord
                         ':id' => $lessonStudentId
                     )
                 )
-                ->order('lessonDate')
+                ->order('date')
                 ->queryAll();
 
             foreach($result as $row) {
                 // 获取数据
                 $lessonDetail = array();
-                $lessonDetail['lessonStudentId']                = $row['id'];
+                $lessonDetail['lessonStudentId']                = $row['lessonStudentId'];
                 $lessonDetail['lessonSerial']                   = $row['lessonSerial'];
-                $lessonDetail['lessonDate']                     = $row['lessonDate'] . '' . $row['lessonTime'];
+                $lessonDetail['lessonDate']                     = $row['date'] . ' ' . $row['time'];
                 $lessonDetail['lessonStatus']                   = self::getLessonStatus($row['step']);
                 $lessonDetail['teacherId']                      = $row['teacherId'];
                 $lessonDetail['teacherName']                    = ApiPublicLesson::model()->getNameByMemberId($row['teacherId']);
                 $lessonDetail['lessonScore']                    = $row['student_rating'];
+                if(empty($lessonDetail['lessonScore'])) {
+                    $lessonDetail['lessonScore']    = '';
+                }
                 $lessonDetail['lessonCharge']                   = $row['student_comment'];
                 $lessonDetail['lessonContent']                  = $row['lesson_content'];
-                $data['lessonDetail'] = $lessonDetail;
+                if(empty($lessonDetail['lessonContent'])) {
+                    $lessonDetail['lessonContent']    = '';
+                }
+                $data[] = $lessonDetail;
             }
 
 //            $data = $result;
@@ -262,12 +296,12 @@ class HtLessonStudent extends CActiveRecord
 
     /**
      * 学员对上过的课时进行评价和打分
-     * @param $userId
-     * @param $token
-     * @param $memberId
-     * @param $lessonStudentId
-     * @param $score
-     * @param $stateComment
+     * @param $userId                   -- 用户ID
+     * @param $token                    -- 用户验证token
+     * @param $memberId                 -- 用户当前绑定的学员对对应的ID
+     * @param $lessonStudentId          -- 课时唯一编号
+     * @param $score                    -- 学员给课时的评分，1-5分
+     * @param $stateComment             -- 课时评价，可以为空
      * @return array|int
      */
     public function lessonStudent($userId, $token, $memberId, $lessonStudentId, $score, $stateComment)
