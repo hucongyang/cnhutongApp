@@ -152,6 +152,7 @@ class HtLessonStudent extends CActiveRecord
      * @param $token        -- 用户验证token
      * @param $memberId     -- 用户当前绑定的学员所对应的ID
      * @param $lessonArrangeId      -- 课程的唯一排课编号
+     * @return array
      */
     public function subjectSchedule($userId, $token, $memberId, $lessonArrangeId)
     {
@@ -170,31 +171,183 @@ class HtLessonStudent extends CActiveRecord
 
             $result = Yii::app()->cnhutong->createCommand()
                 ->select('id as lessonStudentId, lesson_serial as lessonSerial,
-                date as lessonDate, step')
+                date as lessonDate, time as lessonTime, student_comment')
                 ->from('ht_lesson_student')
-                ->where('student_id = :studentId And lesson_arrange_id = :lessonStudentId',
+                ->where('student_id = :studentId And lesson_arrange_id = :lessonArrangeId',
                     array(
                         ':studentId' => $memberId,
-                        ':lessonStudentId' => $lessonArrangeId
+                        ':lessonArrangeId' => $lessonArrangeId
                     )
                 )
                 ->order('lessonDate asc')
                 ->queryAll();
-            $aStep = array(
-                '0' => '正常',
-                '1' => '补课',
-                '2' => '缺勤',
-                '3' => '弃课',
-                '4' => '冻结',
-                '5' => '退费',
-                '6' => '请假',
-                '7' => '顺延补课',
-                '8' => '补课后弃课'
-            );
-            $data = $result;
+
+            foreach($result as $row) {
+                // 获取数据
+                $lessons = array();
+                $lessons['lessonStudentId']                     = $row['id'];
+                $lessons['lessonSerial']                        = $row['lessonSerial'];
+                $lessons['lessonDate']                          = $row['lessonDate'] . '/' . $row['lessonTime'];
+                $lessons['lessonStatus']                        = self::getLessonStatus($row['step']);
+                $lessons['lessonCharge']                        = $row['student_comment'];
+
+                $data['lessons'] = $lessons;
+            }
+//            $data = $result;
         } catch (Exception $e) {
             error_log($e);
         }
         return $data;
+    }
+
+
+    /**
+     * 获取某一次课时的具体详情
+     * @param $userId                   -- 用户ID
+     * @param $token                    -- 用户验证token
+     * @param $memberId                 -- 用户当前绑定的学员所对应的ID
+     * @param $lessonStudentId          -- 课时唯一编号
+     * @return array|int
+     */
+    public function lessonDetails($userId, $token, $memberId, $lessonStudentId)
+    {
+        $data = array();
+        try {
+            // 用户ID验证
+            $isUserId = User::IsUserId($userId);
+            if(!$isUserId) {
+                return 10010;       // MSG_ERR_FAIL_USER
+            }
+            // 用户token验证
+            $isToken = UserToken::IsToken($userId, $token);
+            if(!$isToken) {
+                return 10009;       // MSG_ERR_FAIL_TOKEN
+            }
+
+            $result = Yii::app()->cnhutong->createCommand()
+                ->select('id as lessonStudentId, lesson_serial as lessonSerial, date as lessonDate, time as lessonTime,
+                step, teacher_id as teacherId, student_rating, student_comment, lesson_content')
+                ->from('ht_lesson_student')
+                ->where('student_id = :studentId And id = :id',
+                    array(
+                        ':studentId' => $memberId,
+                        ':id' => $lessonStudentId
+                    )
+                )
+                ->order('lessonDate')
+                ->queryAll();
+
+            foreach($result as $row) {
+                // 获取数据
+                $lessonDetail = array();
+                $lessonDetail['lessonStudentId']                = $row['id'];
+                $lessonDetail['lessonSerial']                   = $row['lessonSerial'];
+                $lessonDetail['lessonDate']                     = $row['lessonDate'] . '' . $row['lessonTime'];
+                $lessonDetail['lessonStatus']                   = self::getLessonStatus($row['step']);
+                $lessonDetail['teacherId']                      = $row['teacherId'];
+                $lessonDetail['teacherName']                    = ApiPublicLesson::model()->getNameByMemberId($row['teacherId']);
+                $lessonDetail['lessonScore']                    = $row['student_rating'];
+                $lessonDetail['lessonCharge']                   = $row['student_comment'];
+                $lessonDetail['lessonContent']                  = $row['lesson_content'];
+                $data['lessonDetail'] = $lessonDetail;
+            }
+
+//            $data = $result;
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $data;
+    }
+
+
+    /**
+     * 学员对上过的课时进行评价和打分
+     * @param $userId
+     * @param $token
+     * @param $memberId
+     * @param $lessonStudentId
+     * @param $score
+     * @param $stateComment
+     * @return array|int
+     */
+    public function lessonStudent($userId, $token, $memberId, $lessonStudentId, $score, $stateComment)
+    {
+        $data = array();
+        try {
+            // 用户ID验证
+            $isUserId = User::IsUserId($userId);
+            if(!$isUserId) {
+                return 10010;       // MSG_ERR_FAIL_USER
+            }
+            // 用户token验证
+            $isToken = UserToken::IsToken($userId, $token);
+            if(!$isToken) {
+                return 10009;       // MSG_ERR_FAIL_TOKEN
+            }
+
+            $result = Yii::app()->cnhutong->createCommand()
+                ->update('ht_lesson_student',
+                    array(
+                        'student_rating' => $score,
+                        'student_comment' => $stateComment
+                    ),
+                    'student_id = :studentId And id = :id',
+                    array(
+                        ':studentId' => $memberId,
+                        ':id' => $lessonStudentId
+                    )
+                );
+
+//            $data = $result;
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $data;
+    }
+
+
+    /**
+     * 学员在APP中对自己的课时进行请假或者取消请假的操作
+     * @param $userId
+     * @param $token
+     * @param $memberId
+     * @param $lessonStudentId
+     * @param $leaveType
+     * @param $issue
+     * @return array|int
+     */
+    public function lessonStudentLeave($userId, $token, $memberId, $lessonStudentId, $leaveType, $issue)
+    {
+
+    }
+
+    /**
+     * 输入 状态 step 0-8
+     * 输出 对应的课时状态 正常，补课等等
+     * @param $step
+     * @return string
+     */
+    public function getLessonStatus($step)
+    {
+        switch ($step) {
+            case "0":
+                return "正常";
+            case "1":
+                return "补课";
+            case "2":
+                return "缺勤";
+            case "3":
+                return "弃课";
+            case "4":
+                return "冻结";
+            case "5":
+                return "退费";
+            case "6":
+                return "请假";
+            case "7":
+                return "顺延补课";
+            case "8":
+                return "补课后弃课";
+        }
     }
 }
