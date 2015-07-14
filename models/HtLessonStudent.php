@@ -125,8 +125,16 @@ class HtLessonStudent extends CActiveRecord
                 $subject['subjectName']                       = $subjectInfo['title'];
                 $subject['teacherId']                           = $row['teacher_id'];
                 $subject['teacherName']                         = ApiPublicLesson::model()->getNameByMemberId($row['teacher_id']);
-                $subject['cnt']                                 = $row['cnt'];
-                $subject['lessonStatus']                        = 'status';
+                $cnt                                             = $row['cnt'];
+                $lessonNowSerial = ApiPublicLesson::model()->getLessonNowSerial($memberId, $row['id']);
+                $subject['lessonProgress']                      = $lessonNowSerial . '/' . $row['cnt'];
+                if($lessonNowSerial < $cnt) {
+                    $subject['lessonStatus']                        = '进行中';
+                } elseif ($lessonNowSerial == $cnt) {
+                    $subject['lessonStatus']                        = '已完成';
+                } else {
+                    $subject['lessonStatus']                        = '';
+                }
                 $subject['departmentId']                      = $row['department_id'];
                 $departmentInfo = ApiPublicLesson::model()->getDepartmentInfoById($subject['departmentId']);
                 $subject['departmentName']                    = $departmentInfo['name'];

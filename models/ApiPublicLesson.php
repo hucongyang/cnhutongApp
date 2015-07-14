@@ -119,4 +119,34 @@ class ApiPublicLesson extends CActiveRecord
         }
         return $lessonCount;
     }
+
+    /**
+     * 输入 学员studentId, 课程排课编号lessonArrangeId
+     * 输出 当前时间课时进度lesson_serial
+     * @param $studentId
+     * @param $lessonArrangeId
+     * @return array
+     */
+    public function getLessonNowSerial($studentId, $lessonArrangeId)
+    {
+        $nowTime = date('Y-m-d');
+        $lessonSerial = null;
+        try {
+            $lessonSerial = Yii::app()->cnhutong->createCommand()
+                ->select('lesson_serial')
+                ->from('ht_lesson_student')
+                ->where('student_id = :studentId And lesson_arrange_id = :lessonArrangeId And date <= :nowTime',
+                    array(
+                        ':studentId' => $studentId,
+                        ':lessonArrangeId' => $lessonArrangeId,
+                        ':nowTime' => $nowTime
+                    )
+                )
+                ->order('lesson_serial desc')
+                ->queryScalar();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $lessonSerial * 2;   //上一次课是2个课时
+    }
 }
