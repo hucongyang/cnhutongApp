@@ -9,11 +9,12 @@ class MemberController extends ApiPublicController
     }
     /**
      * 获取验证码                actionGetVerificationCode()
-     * @param $mobile string    手机号码
-     * @param $type int        类型：1表示注册新用户，2表示找回密码
-     * @return $result          调用返回结果
-     * @return $msg             调用返回结果说明
-     * 根据手机号获取注册验证码（用于注册新用户、找回密码)
+     * @param $mobile string    --手机号码
+     * @param $type int        --类型：1表示注册新用户，2表示找回密码,3表示绑定手机
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
+     * 根据手机号获取注册验证码（用于注册新用户,找回密码,绑定手机)
      */
     public function actionGetVerificationCode()
     {
@@ -29,7 +30,7 @@ class MemberController extends ApiPublicController
             $this->_return('MSG_ERR_FAIL_PARAM');
         }
 
-        $aType = array('1', '2');
+        $aType = array('1', '2', '3');
         if(!in_array($type, $aType)) {
             $this->_return('MSG_ERR_FAIL_PARAM');
         }
@@ -42,6 +43,8 @@ class MemberController extends ApiPublicController
             $this->_return("MSG_ERR_INVALID_MOBILE");
         } elseif ($data === 10006) {
             $this->_return("MSG_ERR_UN_REGISTER_MOBILE");
+        } elseif ($data === 30001) {
+            $this->_return("MSG_ERR_INVALID_BIND_MOBILE");
         }
 
         // 记录log
@@ -51,12 +54,12 @@ class MemberController extends ApiPublicController
 
     /**
      * 注册       actionRegister()
-     * @param $mobile int 手机号码
-     * @param $password string 密码（md5加密）
-     * @checkNum $checkNum int 服务器发送的验证码
-     * @return $result          调用返回结果
-     * @return $msg             调用返回结果说明
-     * @return $data             调用返回数据
+     * @param $mobile int           --手机号码
+     * @param $password string      --密码（md5加密）
+     * @checkNum $checkNum int      --服务器发送的验证码
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
      */
     public function actionRegister()
     {
@@ -86,6 +89,38 @@ class MemberController extends ApiPublicController
         } elseif ($data === 10006) {
             $this->_return("MSG_ERR_UN_REGISTER_MOBILE");
         }
+
+        // 记录log
+
+        $this->_return('MSG_SUCCESS', $data);
+    }
+
+    /**
+     * 用户绑定手机      actionBindMobile()
+     * @param $mobile int           --手机号码
+     * @param $password string      --密码（md5加密）
+     * @checkNum $checkNum int      --服务器发送的验证码
+     * @token $token  string         --登录token
+     * @userId  $userId int         --用户id(APP中用户的唯一标识)
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
+     */
+    public function actionBindMobile()
+    {
+
+    }
+
+    /**
+     * 用户自动注册      actionAutoRegister()
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
+     */
+    public function actionAutoRegister()
+    {
+        // 自动注册
+        $data = User::model()->autoRegister();
 
         // 记录log
 

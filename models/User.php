@@ -98,6 +98,49 @@ class User extends CActiveRecord
         return $data;
     }
 
+    /**
+     * 用户自动注册
+     * 用户在打开APP进行第一次使用后进行自动注册，如果这个手机第一次使用APP则可以自动注册成功，
+     * 如果不是第一次使用，且没有绑定过账号，则进行自动登录
+     * 如果已使用绑定账号，则需要用户进行登录后才能进入APP使用
+     *
+     * @return array
+     */
+    public function autoRegister()
+    {
+        $data = array();
+        try {
+            //自动注册成功插入数据
+            $registerTime = date("Y-m-d H-i-s", strtotime("now"));        //用户注册时间
+            $registerIp = self::getClientIP();                              //用户注册IP
+            $lastLoginTime = date("Y-m-d H-i-s", strtotime("now"));       //用户最后登录时间，当前为注册时间
+            $lastLoginIp = self::getClientIP();                             //用户最后登录IP，当前为注册IP
+            Yii::app()->cnhutong_user->createCommand()
+                ->insert('user',
+                    array(
+                        'register_time' => $registerTime,
+                        'register_ip' => $registerIp,
+                        'last_login_time' => $lastLoginTime,
+                        'last_login_ip' =>$lastLoginIp,
+                    )
+                );
+            // 自动注册获得userId
+            $userId = self::getUserIdByAutoRegister();
+            // 伪造username
+            $username = 'User'.$userId;
+            Yii::app()->cnhutong_user->createCommand()
+                ->update('user',
+                    array(
+                        'username' => $username
+                    ),
+                    'id = :userId',
+                    array(':userId' => $userId)
+                );
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $data;
+    }
 
     /**
      * 用户使用手机号/密码登录
@@ -281,6 +324,16 @@ class User extends CActiveRecord
             ->select('id')
             ->from('user')
             ->where('id = :id And status = 1', array(':id' => $userId))
+            ->queryScalar();
+        return $user;
+    }
+
+    public function getUserIdByAutoRegister()
+    {
+        $user = Yii::app()->cnhutong_user->craeteCommand()
+            ->select('id')
+            ->from('user')
+            ->order('id desc')
             ->queryScalar();
         return $user;
     }

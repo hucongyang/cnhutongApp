@@ -15,7 +15,7 @@ class MobileCheckcode extends CActiveRecord
     /**
      * 手机验证码:根据参数type类型对应操作       verificationCode
      * @param $mobile               --手机号码
-     * @param $type                 1-注册    2-找回密码
+     * @param $type                 1-注册    2-找回密码      3-绑定手机
      * @return int                  返回对应的信息
      */
     public function verificationCode($mobile, $type)
@@ -78,6 +78,40 @@ class MobileCheckcode extends CActiveRecord
                 } else {
                     // 手机号码已存在mobile_checknum表里面 update
                     $mobile_checkcode = Yii::app()->cnhutong_user->createCommand()
+                        ->update('mobile_checkcode',
+                            array(
+                                'checknum' => $checkNum,
+                                'create_ts' => $nowTime,
+                                'expire_ts' => $overTime,
+                                'status' => 0
+                            ),
+                            'mobile = :mobile',
+                            array(':mobile' => $mobile)
+                        );
+                }
+            } catch (Exception $e) {
+                error_log($e);
+            }
+        } elseif ($type == 3) {        //  绑定手机发送验证码
+            try {
+                if(User::model()->getUserByMobile($mobile)) {
+                    return 30001;       //  MSG_ERR_INVALID_BIND_MOBILE
+                }
+                //该手机号码第一次发送验证码，insert
+                if(!self::getIsExistMobile($mobile)) {
+                    $mobile_checkcode_insert = Yii::app()->cnhutong_user->createCommand()
+                        ->insert('mobile_checkcode',
+                            array(
+                                'mobile' => $mobile,
+                                'checknum' => $checkNum,
+                                'create_ts' => $nowTime,
+                                'expire_ts' => $overTime,
+                                'status' => 0
+                            )
+                        );
+                } else {
+                    //手机号码已发送验证码，再次发送, update
+                    $mobile_checkcode_update = Yii::app()->cnhutong_user->createCommand()
                         ->update('mobile_checkcode',
                             array(
                                 'checknum' => $checkNum,

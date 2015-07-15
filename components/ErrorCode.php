@@ -36,6 +36,8 @@ $_error_code = array(
 		'MSG_ERR_NO_ADMIN'			=> array('20004', '管理员不存在或没有相关操作权限'),
 		'MSG_ERR_NO_MORE_LESSONS'	=> array('20005', '该学员课程已结束，不能再进行加课'),
 
+        'MSG_ERR_INVALID_BIND_MOBILE'       => array('30001', '该手机号码已被绑定'),
+
 		// 其它
 		'MSG_ERR_UNKOWN'			=> array('99999', '未知错误')
 );
