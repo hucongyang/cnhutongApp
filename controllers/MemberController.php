@@ -77,9 +77,9 @@ class MemberController extends ApiPublicController
             $this->_return('MSG_ERR_FAIL_PARAM');
         }
 
-        if(!$this->isPasswordValid($password)) {
-            $this->_return('MSG_ERR_FAIL_PARAM');
-        }
+//        if(!$this->isPasswordValid($password)) {
+//            $this->_return('MSG_ERR_FAIL_PARAM');
+//        }
         //根据手机号，密码，验证码注册新用户
         $data = User::model()->register($mobile, $password, $checkNum);
         if($data === 10003) {
@@ -100,7 +100,7 @@ class MemberController extends ApiPublicController
      * @param $mobile int           --手机号码
      * @param $password string      --密码（md5加密）
      * @checkNum $checkNum int      --服务器发送的验证码
-     * @token $token  string         --登录token
+     * @token  $token  string         --登录token
      * @userId  $userId int         --用户id(APP中用户的唯一标识)
      * @return result          调用返回结果
      * @return msg             调用返回结果说明
@@ -108,7 +108,36 @@ class MemberController extends ApiPublicController
      */
     public function actionBindMobile()
     {
+        // 检查参数
+        if(!isset($_REQUEST['mobile']) || !isset($_REQUEST['password']) ||
+            !isset($_REQUEST['checkNum']) || !isset($_REQUEST['token']) ||
+            !isset($_REQUEST['userId'])) {
+            $this->_return('MSG_ERR_LESS_PARAM');
+        }
 
+        $mobile = Yii::app()->request->getParam('mobile', NULL);
+        $password = Yii::app()->request->getParam('password', NULL);
+        $checkNum = Yii::app()->request->getParam('checkNum', NULL);
+        $token = Yii::app()->request->getParam('token', NUll);
+        $userId = Yii::app()->request->getParam('userId', NULL);
+        $referee = Yii::app()->request->getParam('referee', NULL);
+
+        if(!$this->isMobile($mobile)) {
+            $this->_return('MSG_ERR_FAIL_PARAM');
+        }
+
+        // 根据手机号码，密码，验证码，登录token，用户id 绑定手机号码
+        $data = User::model()->bindMobile($mobile, $password, $checkNum, $token, $userId, $referee);
+        if($data === 10002) {
+            $this->_return("MSG_ERR_FAIL_PARAM");
+        } elseif ($data === 10005) {
+            $this->_return("MSG_ERR_CODE_OVER_TIME");
+        } elseif ($data === 10009) {
+            $this->_return("MSG_ERR_FAIL_TOKEN");
+        }
+        // 记录log
+
+        $this->_return('MSG_SUCCESS', $data);
     }
 
     /**

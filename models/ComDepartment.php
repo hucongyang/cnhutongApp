@@ -16,7 +16,7 @@ class ComDepartment extends CActiveRecord
      * 获取所有校区的列表以及基本内容
      * @return array|bool
      */
-    public static function getAllSchools()
+    public function getAllSchools()
     {
         $data = array();
         $school = array();
@@ -36,7 +36,7 @@ class ComDepartment extends CActiveRecord
                 'address' => $row['address'],
                 'pointX' => $row['point_x'],
                 'pointY' => $row['point_y'],
-                'photo' => $row['picture']
+                'photo' => self::getSchoolPictureById($row['id'])
             );
             $data['schools'] = $school;
         }
@@ -44,11 +44,35 @@ class ComDepartment extends CActiveRecord
     }
 
     /**
+     * 根据校区ID获得校区乳片列表
+     * @param $departmentId
+     * @return array
+     */
+    public function getSchoolPictureById($departmentId)
+    {
+        $aPicture = array();
+        try {
+            $aPicture = Yii::app()->cnhutong_user->createCommand()
+                ->select('picture')
+                ->from('com_department_picture')
+                ->where('department_id = :departmentId',
+                    array(
+                        ':departmentId' => $departmentId
+                    )
+                )
+                ->queryAll();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $aPicture;
+    }
+
+    /**
      * 获得校区具体信息
      * @param $departmentId
      * @return array|bool
      */
-    public static function getSchoolInfo($departmentId)
+    public function getSchoolInfo($departmentId)
     {
         $data = array();
         $school_model = Yii::app()->cnhutong_user->createCommand()

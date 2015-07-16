@@ -115,26 +115,104 @@ class User extends CActiveRecord
             $registerIp = self::getClientIP();                              //用户注册IP
             $lastLoginTime = date("Y-m-d H-i-s", strtotime("now"));       //用户最后登录时间，当前为注册时间
             $lastLoginIp = self::getClientIP();                             //用户最后登录IP，当前为注册IP
+            // 伪造username
+            $username = 'User' . MobileCheckcode::model()->getNum();
             Yii::app()->cnhutong_user->createCommand()
                 ->insert('user',
                     array(
+                        'username' => $username,
                         'register_time' => $registerTime,
                         'register_ip' => $registerIp,
                         'last_login_time' => $lastLoginTime,
                         'last_login_ip' =>$lastLoginIp,
                     )
                 );
-            // 自动注册获得userId
-            $userId = self::getUserIdByAutoRegister();
-            // 伪造username
-            $username = 'User'.$userId;
+
+            // 获得自动注册userId
+//            $userId = self::getUserIdByAutoRegister();
+            $userId = Yii::app()->cnhutong_user->getLastinsertId();
+
+            // 注册成功生成token
+            $token = UserToken::getRandomToken(32);
+            $type = '';
+            $create_ts = date("Y-m-d H-i-s", strtotime("now"));
+            $expire_ts_token = date("Y-m-d H-i-s", strtotime("+30 day"));
+            Yii::app()->cnhutong_user->createCommand()
+                ->insert('user_token',
+                    array(
+                        'user_id' => $userId,
+                        'token' => $token,
+                        'type' => $type,
+                        'create_ts' => $create_ts,
+                        'expire_ts' => $expire_ts_token
+                    )
+                );
+
+            //userId
+            $data['userId'] = $userId;
+            //members
+            $data['members'] = UserMember::getMembers($userId);
+            if(!$data['members']) {
+                $data['members'] = "尚未绑定学员id";
+            }
+            //token
+            $data['token'] = UserToken::getToken($userId);
+            //用户昵称，积分，等级 等待后续开发
+
+            $data['nickname'] = $username;
+            $data['points'] = 'points';
+            $data['level'] = 'level';
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $data;
+    }
+
+    /**
+     * 用户绑定手机
+     * @param $mobile
+     * @param $password
+     * @param $checkNum
+     * @param $token
+     * @param $userId
+     * @param $referee
+     * @return array
+     */
+    public function bindMobile($mobile, $password, $checkNum, $token, $userId, $referee)
+    {
+        $data = array();
+        try {
+            $user = self::IsUserId($userId);
+            if(!$user) {
+                return 10002;       //  MSG_ERR_FAIL_PARAM
+            }
+            $userToken = UserToken::IsToken($userId, $token);
+//            var_dump($userToken);exit;
+            if(!$userToken) {
+                return 10009;       //  MSG_ERR_FAIL_TOKEN
+            }
+            $mobile_checkcode = MobileCheckcode::model()->checkCode($mobile, $checkNum);
+            if(!$mobile_checkcode) {
+                return 10005;           //  MSG_ERR_CODE_OVER_TIME
+            }
+            // 用户手机绑定成功后 update
             Yii::app()->cnhutong_user->createCommand()
                 ->update('user',
                     array(
-                        'username' => $username
+                        'mobile' => $mobile,
+                        'password' => $password
                     ),
                     'id = :userId',
                     array(':userId' => $userId)
+                );
+            // 修改成功，验证码使用后改变验证码status状态
+            Yii::app()->cnhutong_user->createCommand()
+                ->update('mobile_checkcode',
+                    array(
+                        'status' => 1
+                    ),
+                    'mobile = :mobile',
+                    array(':mobile' => $mobile)
                 );
         } catch (Exception $e) {
             error_log($e);
@@ -328,13 +406,16 @@ class User extends CActiveRecord
         return $user;
     }
 
+    /**
+     * @return mixed
+     */
     public function getUserIdByAutoRegister()
     {
         $user = Yii::app()->cnhutong_user->craeteCommand()
             ->select('id')
             ->from('user')
             ->order('id desc')
-            ->queryScalar();
+            ->queryRow();
         return $user;
     }
 
