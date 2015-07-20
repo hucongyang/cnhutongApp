@@ -157,6 +157,53 @@ class MemberController extends ApiPublicController
     }
 
     /**
+     * 用户绑定学员信息      actionBindMember()
+     * @salt $salt string           --绑定学员对应的口令
+     * @token  $token  string       --登录token
+     * @userId  $userId int         --用户id(APP中用户的唯一标识)
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
+     */
+    public function actionBindMember()
+    {
+        if(!isset($_REQUEST['userId']) || !isset($_REQUEST['token']) || !isset($_REQUEST['salt'])) {
+            $this->_return('MSG_ERR_LESS_PARAM');
+        }
+
+        $userId = Yii::app()->request->getParam('userId', NULL);
+        $token = Yii::app()->request->getParam('token', NULL);
+        $salt = Yii::app()->request->getParam('salt', NULL);
+
+        // 绑定学员信息
+        $data = UserMember::model()->bindMember($userId, $token, $salt);
+        if($data === 10002) {
+            $this->_return('MSG_ERR_FAIL_PARAM');
+        } elseif ($data === 10009) {
+            $this->_return('MSG_ERR_FAIL_TOKEN');
+        } elseif ($data === 40001) {
+            $this->_return('MSG_ERR_SALT');
+        } elseif ($data === 40002) {
+            $this->_return('MSG_ERR_INVALID_SALT');
+        }
+        // 记录log
+
+        $this->_return('MSG_SUCCESS', $data);
+    }
+
+    public function actionRemoveMember()
+    {
+        if(!isset($_REQUEST['userId']) || !isset($_REQUEST['token']) || !isset($_REQUEST['memberId'])) {
+            $this->_return('MSG_ERR_LESS_PARAM');
+        }
+
+        $userId = Yii::app()->request->getParam('userId', NULL);
+        $token = Yii::app()->request->getParam('token', NULL);
+        $memberId = Yii::app()->request->getParam('memberId', NULL);
+
+    }
+
+    /**
      * 登录接口 actionLogin()  手机号码，密码登录
      *
      * @param $mobile string 注册时使用的手机号

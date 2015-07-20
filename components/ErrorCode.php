@@ -38,6 +38,10 @@ $_error_code = array(
 
         'MSG_ERR_INVALID_BIND_MOBILE'       => array('30001', '该手机号码已被绑定'),
 
+        'MSG_ERR_SALT'                  => array('40001', '口令错误'),
+
+        'MSG_ERR_INVALID_SALT'        => array('40002', '口令已被使用，失效'),
+
 		// 其它
 		'MSG_ERR_UNKOWN'			=> array('99999', '未知错误')
 );
