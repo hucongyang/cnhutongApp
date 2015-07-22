@@ -1,6 +1,6 @@
 <?php
 
-class UserLoginHistory extends CActiveRecord
+class ComAds extends CActiveRecord
 {
     public static function model($className = __CLASS__)
     {
@@ -9,7 +9,6 @@ class UserLoginHistory extends CActiveRecord
 
     public function tableName()
     {
-        return '{{user_login_history}}';
+        return '{{com_ads}}';
     }
-
 }

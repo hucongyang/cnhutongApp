@@ -98,70 +98,94 @@ class User extends CActiveRecord
         return $data;
     }
 
+
     /**
-     * 用户自动注册
-     * 用户在打开APP进行第一次使用后进行自动注册，如果这个手机第一次使用APP则可以自动注册成功，
+     * * 用户自动注册
+     * 用户在打开APP进行第一次使用后进行自动注册，
+     * 如果这个手机第一次使用APP则可以自动注册成功，
      * 如果不是第一次使用，且没有绑定过账号，则进行自动登录
      * 如果已使用绑定账号，则需要用户进行登录后才能进入APP使用
      *
+     * @param $version              -- API版本号，版本控制使用
+     * @param $deviceId            -- IMEI设备ID（open-udid）
+     * @param $platform             -- 平台 IOS/Android
+     * @param $channel              -- 登录渠道 baidu|91|appstore
+     * @param $appVersion          -- App版本号
+     * @param $osVersion           -- 操作系统版本号
+     * @param $appId               -- 应用编号
      * @return array
      */
-    public function autoRegister()
+    public function autoRegister($version, $deviceId, $platform, $channel, $appVersion, $osVersion, $appId)
     {
         $data = array();
         try {
-            //自动注册成功插入数据
-            $registerTime = date("Y-m-d H-i-s", strtotime("now"));        //用户注册时间
-            $registerIp = self::getClientIP();                              //用户注册IP
-            $lastLoginTime = date("Y-m-d H-i-s", strtotime("now"));       //用户最后登录时间，当前为注册时间
-            $lastLoginIp = self::getClientIP();                             //用户最后登录IP，当前为注册IP
-            // 伪造username
-            $username = 'User' . MobileCheckcode::model()->getNum();
-            Yii::app()->cnhutong_user->createCommand()
-                ->insert('user',
-                    array(
-                        'username' => $username,
-                        'register_time' => $registerTime,
-                        'register_ip' => $registerIp,
-                        'last_login_time' => $lastLoginTime,
-                        'last_login_ip' =>$lastLoginIp,
-                    )
-                );
+            // 第一次使用打开App，判断该机器($device_id)有没有旧账号($userId)
+            $user = UserMachineInfo::model()->IsExistUserIdByDeviceId($deviceId);
+            if(!$user) {
+                // 没有账号，自动注册, 插入数据
+                $registerTime = date("Y-m-d H-i-s", strtotime("now"));        //用户注册时间
+                $lastLoginTime = date("Y-m-d H-i-s", strtotime("now"));       //用户最后登录时间，当前为注册时间
+                // 伪造username
+                $username = 'User' . LogMobileCheckcode::model()->getNum();
+                Yii::app()->cnhutong_user->createCommand()
+                    ->insert('user',
+                        array(
+                            'username' => $username,
+                            'register_time' => $registerTime,
+                            'last_login_time' => $lastLoginTime,
+                        )
+                    );
+                // 获得刚刚自动注册的userId
+//                $userId = self::getUserIdByAutoRegister();
+                $userId = Yii::app()->cnhutong_user->getLastInsertID();
+                //注册成功生成token
+                $token = UserToken::model()->getRandomToken(32);
+                $create_ts = date("Y-m-d H-i-s", strtotime("now"));
+                $expire_ts = date("Y-m-d H-i-s", strtotime("+30 day"));
+                Yii::app()->cnhutong_user->createCommand()
+                    ->insert('user_token',
+                        array(
+                            'user_id' => $userId,
+                            'token' => $token,
+                            'type' => $platform,
+                            'create_ts' => $create_ts,
+                            'expire_ts' => $expire_ts
+                        )
+                    );
+                // 注册成功insert user_machine_info
+                $register_ip = self::getClientIP();
+                Yii::app()->cnhutong_user->createCommand()
+                    ->insert('user_machine_info',
+                        array(
+                            'user_id' => $userId,
+                            'device_id' => $deviceId,
+                            'platform' => $platform,
+                            'version' => $version,
+                            'regist_ip' => $register_ip,
+                            'register_time' => $registerTime
+                        )
+                    );
+                //userId
+                $data['userId'] = $userId;
+                //token
+                $data['token'] = UserToken::model()->getToken($userId);
+                //用户昵称，积分，等级
+                $userMessage = self::getUserMessageByUserId($userId);
+                $data['nickname'] = $userMessage['username'];
+                $data['points'] = $userMessage['score'];
+                $data['level'] = $userMessage['level'];
+                //members
+                $data['members'] = UserMember::model()->getMembers($userId);
+                if(!$data['members']) {
+                    $data['members'] = "尚未绑定学员id";
+                }
+                return $data;
+            } else {
+                //机器中有账号,继续判断userId唯一且密码为空。则自动登录,否则跳转到账号密码登录页面
 
-            // 获得自动注册userId
-//            $userId = self::getUserIdByAutoRegister();
-            $userId = Yii::app()->cnhutong_user->getLastinsertId();
-
-            // 注册成功生成token
-            $token = UserToken::getRandomToken(32);
-            $type = '';
-            $create_ts = date("Y-m-d H-i-s", strtotime("now"));
-            $expire_ts_token = date("Y-m-d H-i-s", strtotime("+30 day"));
-            Yii::app()->cnhutong_user->createCommand()
-                ->insert('user_token',
-                    array(
-                        'user_id' => $userId,
-                        'token' => $token,
-                        'type' => $type,
-                        'create_ts' => $create_ts,
-                        'expire_ts' => $expire_ts_token
-                    )
-                );
-
-            //userId
-            $data['userId'] = $userId;
-            //members
-            $data['members'] = UserMember::getMembers($userId);
-            if(!$data['members']) {
-                $data['members'] = "尚未绑定学员id";
+                return $data;
             }
-            //token
-            $data['token'] = UserToken::getToken($userId);
-            //用户昵称，积分，等级 等待后续开发
 
-            $data['nickname'] = $username;
-            $data['points'] = 'points';
-            $data['level'] = 'level';
         } catch (Exception $e) {
             error_log($e);
         }
@@ -443,5 +467,41 @@ class User extends CActiveRecord
             $ip = "Unknow";
         }
         return $ip;
+    }
+
+    /**
+     * 输入：App唯一标识userId
+     * 输出：用户昵称，积分，等级等
+     * @param $userId
+     * @return array
+     */
+    public function getUserMessageByUserId($userId)
+    {
+        $userMessage = array();
+        try {
+            $userMessage = Yii::app()->cnhutong_user->createCommand()
+                ->select('id, username, score, level')
+                ->from('user')
+                ->where('id = :userId', array(':userId' => $userId))
+                ->queryRow();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $userMessage;
+    }
+
+    public function IsAutoLogin($userId)
+    {
+        $aUser = array();
+        try {
+            $aUser = Yii::app()->cnhutong_user->createCommand()
+                ->select('*')
+                ->from('user')
+                ->where("id = :userId And password = '' And status = 1", array(':userId' => $userId))
+                ->queryAll();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $aUser;
     }
 }

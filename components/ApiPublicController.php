@@ -18,6 +18,12 @@ class ApiPublicController extends Controller
 //        }
         // $_department_id = 1;
         // TODO : 此处考虑记录访问LOG
+
+        // 秦汉胡同APP log公共参数 检查参数
+        if(!isset($_REQUEST['version']) || !isset($_REQUEST['deviceId']) || !isset($_REQUEST['platform']) || !isset($_REQUEST['channel'])
+            || !isset($_REQUEST['appVersion']) || !isset($_REQUEST['osVersion']) || !isset($_REQUEST['appId'])) {
+            $this->_return('MSG_ERR_LESS_PARAM');
+        }
     }
 
 	/*******************************************************

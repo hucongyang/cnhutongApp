@@ -32,7 +32,7 @@ class UserMember extends CActiveRecord
             }
             foreach($member_model as $row) {
                 $aMembers[] = array(
-                    'name' => '秦汉胡同',
+                    'name' => self::getMemberNameByMemberId($row['member_id']),
                     'memberId' => $row['member_id'],
                     'memberStatus' => $row['status']
                 );
@@ -59,7 +59,7 @@ class UserMember extends CActiveRecord
             // 验证userId
             $user = User::model()->IsUserId($userId);
             if(!$user) {
-                return 10002;       // MSG_ERR_FAIL_PARAM
+                return 10010;       // MSG_ERR_FAIL_USER
             }
             // 验证token
             $userToken = UserToken::IsToken($userId, $token);
@@ -86,6 +86,47 @@ class UserMember extends CActiveRecord
                         'status' => 1,
                         'create_ts' => $nowTime
                     )
+                );
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $data;
+    }
+
+    /**
+     * 用户解除绑定学员id
+     * @param $userId
+     * @param $token
+     * @param $memberId
+     * @return array
+     */
+    public function removeMember($userId, $token, $memberId)
+    {
+        $data = array();
+        try {
+            // 验证userId
+            $user = User::model()->IsUserId($userId);
+            if(!$user) {
+                return 10010;       // MSG_ERR_FAIL_USER
+            }
+            // 验证token
+            $userToken = UserToken::IsToken($userId, $token);
+            if($userToken) {
+                return 10009;       // MSG_ERR_FAIL_TOKEN
+            }
+            // 验证要删除的memberId 是否存在
+            $userMemberId = self::IsExistMemberId($userId, $memberId);
+            if(!$userMemberId) {
+                return 40003;       // MSG_ERR_FAIL_MEMBER
+            }
+            // 验证通过后，解除学员id的绑定
+            $delete_member = Yii::app()->cnhutong_user->createCommand()
+                ->delete('user_member',
+                         'user_id = :userId And member_id = :memberId',
+                        array(
+                            ':userId' => $userId,
+                            ':memberId' => $memberId
+                        )
                 );
         } catch (Exception $e) {
             error_log($e);
@@ -139,5 +180,26 @@ class UserMember extends CActiveRecord
             error_log($e);
         }
         return $id;
+    }
+
+    /**
+     * 输入：学员特有memberID
+     * 输出：学员姓名
+     * @param $memberId
+     * @return array
+     */
+    public function getMemberNameByMemberId($memberId)
+    {
+        $name = '';
+        try {
+            $name = Yii::app()->cnhutong->createCommand()
+                ->select('name')
+                ->from('ht_member')
+                ->where('id = :memberId', array(':memberId' => $memberId))
+                ->queryScalar();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $name;
     }
 }

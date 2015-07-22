@@ -1,6 +1,6 @@
 <?php
 
-class SmsSendHistory extends CActiveRecord
+class LogUserRecommand extends CActiveRecord
 {
     public static function model($className = __CLASS__)
     {
@@ -9,6 +9,6 @@ class SmsSendHistory extends CActiveRecord
 
     public function tableName()
     {
-        return '{{sms_send_history}}';
+        return '{{log_user_recommand}}';
     }
 }

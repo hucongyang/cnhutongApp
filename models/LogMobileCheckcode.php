@@ -1,6 +1,6 @@
 <?php
 
-class MobileCheckcode extends CActiveRecord
+class LogMobileCheckcode extends CActiveRecord
 {
     public static function model($className = __CLASS__)
     {
@@ -9,7 +9,7 @@ class MobileCheckcode extends CActiveRecord
 
     public function tableName()
     {
-        return '{{mobile_checkcode}}';
+        return '{{log_mobile_checkcode}}';
     }
 
     /**

@@ -148,8 +148,17 @@ class MemberController extends ApiPublicController
      */
     public function actionAutoRegister()
     {
+        // 检查参数
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
+
         // 自动注册
-        $data = User::model()->autoRegister();
+        $data = User::model()->autoRegister($version, $deviceId, $platform, $channel, $appVersion, $osVersion, $appId);
 
         // 记录log
 
@@ -177,8 +186,8 @@ class MemberController extends ApiPublicController
 
         // 绑定学员信息
         $data = UserMember::model()->bindMember($userId, $token, $salt);
-        if($data === 10002) {
-            $this->_return('MSG_ERR_FAIL_PARAM');
+        if($data === 10010) {
+            $this->_return('MSG_ERR_FAIL_USER');
         } elseif ($data === 10009) {
             $this->_return('MSG_ERR_FAIL_TOKEN');
         } elseif ($data === 40001) {
@@ -191,6 +200,15 @@ class MemberController extends ApiPublicController
         $this->_return('MSG_SUCCESS', $data);
     }
 
+    /**
+     * 用户解除绑定学员信息      actionRemoveMember()
+     * @salt $memberId string       --绑定学员对应ID
+     * @token  $token  string       --登录token
+     * @userId  $userId int         --用户id(APP中用户的唯一标识)
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
+     */
     public function actionRemoveMember()
     {
         if(!isset($_REQUEST['userId']) || !isset($_REQUEST['token']) || !isset($_REQUEST['memberId'])) {
@@ -201,6 +219,18 @@ class MemberController extends ApiPublicController
         $token = Yii::app()->request->getParam('token', NULL);
         $memberId = Yii::app()->request->getParam('memberId', NULL);
 
+        // 解除绑定学员id
+        $data = UserMember::model()->removeMember($userId, $token, $memberId);
+        if($data === 10009) {
+            $this->_return('MSG_ERR_FAIL_TOKEN');
+        } elseif ($data === 10010) {
+            $this->_return('MSG_ERR_FAIL_USER');
+        } elseif ($data === 40003) {
+            $this->_return('MSG_ERR_FAIL_MEMBER');
+        }
+        //记录log
+
+        $this->_return('MSG_SUCCESS', $data);
     }
 
     /**

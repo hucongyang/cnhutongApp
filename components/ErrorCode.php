@@ -42,6 +42,8 @@ $_error_code = array(
 
         'MSG_ERR_INVALID_SALT'        => array('40002', '口令已被使用，失效'),
 
+        'MSG_ERR_FAIL_MEMBER'         => array('40003', '传入的学员ID错误'),
+
 		// 其它
 		'MSG_ERR_UNKOWN'			=> array('99999', '未知错误')
 );
