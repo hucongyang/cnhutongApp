@@ -32,7 +32,7 @@ class LogMobileCheckcode extends CActiveRecord
                 //该手机号码第一次发送验证码，insert
                 if(!self::getIsExistMobile($mobile)) {
                     $mobile_checkcode_insert = Yii::app()->cnhutong_user->createCommand()
-                        ->insert('mobile_checkcode',
+                        ->insert('log_mobile_checkcode',
                             array(
                                 'mobile' => $mobile,
                                 'checknum' => $checkNum,
@@ -44,7 +44,7 @@ class LogMobileCheckcode extends CActiveRecord
                 } else {
                     //手机号码已发送验证码，再次发送, update
                     $mobile_checkcode_update = Yii::app()->cnhutong_user->createCommand()
-                        ->update('mobile_checkcode',
+                        ->update('log_mobile_checkcode',
                             array(
                                 'checknum' => $checkNum,
                                 'create_ts' => $nowTime,
@@ -66,7 +66,7 @@ class LogMobileCheckcode extends CActiveRecord
                 // 该手机号码不在mobile_checkcode表里面(ps:删除了) insert
                 if(!self::getIsExistMobile($mobile)) {
                     $mobile_checkcode_insert = Yii::app()->cnhutong_user->createCommand()
-                        ->insert('mobile_checkcode',
+                        ->insert('log_mobile_checkcode',
                             array(
                                 'mobile' => $mobile,
                                 'checknum' => $checkNum,
@@ -78,7 +78,7 @@ class LogMobileCheckcode extends CActiveRecord
                 } else {
                     // 手机号码已存在mobile_checknum表里面 update
                     $mobile_checkcode = Yii::app()->cnhutong_user->createCommand()
-                        ->update('mobile_checkcode',
+                        ->update('log_mobile_checkcode',
                             array(
                                 'checknum' => $checkNum,
                                 'create_ts' => $nowTime,
@@ -100,7 +100,7 @@ class LogMobileCheckcode extends CActiveRecord
                 //该手机号码第一次发送验证码，insert
                 if(!self::getIsExistMobile($mobile)) {
                     $mobile_checkcode_insert = Yii::app()->cnhutong_user->createCommand()
-                        ->insert('mobile_checkcode',
+                        ->insert('log_mobile_checkcode',
                             array(
                                 'mobile' => $mobile,
                                 'checknum' => $checkNum,
@@ -112,7 +112,7 @@ class LogMobileCheckcode extends CActiveRecord
                 } else {
                     //手机号码已发送验证码，再次发送, update
                     $mobile_checkcode_update = Yii::app()->cnhutong_user->createCommand()
-                        ->update('mobile_checkcode',
+                        ->update('log_mobile_checkcode',
                             array(
                                 'checknum' => $checkNum,
                                 'create_ts' => $nowTime,
@@ -171,7 +171,7 @@ class LogMobileCheckcode extends CActiveRecord
     {
         $mobile_id = Yii::app()->cnhutong_user->createCommand()
             ->select('id')
-            ->from('mobile_checkcode')
+            ->from('log_mobile_checkcode')
             ->where('mobile = :mobile', array(':mobile' => $mobile))
             ->queryScalar();
         if(!$mobile_id) {
@@ -191,7 +191,7 @@ class LogMobileCheckcode extends CActiveRecord
         $nowTime = strtotime("now");    //当前时间戳
         $check = Yii::app()->cnhutong_user->createCommand()
             ->select('id, create_ts, expire_ts')
-            ->from('mobile_checkcode')
+            ->from('log_mobile_checkcode')
             ->where('mobile = :mobile And checknum = :checknum',
                 array(
                     ':mobile' => $mobile,

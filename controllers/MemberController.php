@@ -35,7 +35,7 @@ class MemberController extends ApiPublicController
             $this->_return('MSG_ERR_FAIL_PARAM');
         }
         // 根据手机号码发送验证码
-        $data = MobileCheckcode::model()->verificationCode($mobile, $type);
+        $data = LogMobileCheckcode::model()->verificationCode($mobile, $type);
 //        var_dump($data);exit;
         if($data === 10002) {
             $this->_return("MSG_ERR_FAIL_PARAM");

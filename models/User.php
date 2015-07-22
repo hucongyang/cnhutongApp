@@ -182,7 +182,12 @@ class User extends CActiveRecord
                 return $data;
             } else {
                 //机器中有账号,继续判断userId唯一且密码为空。则自动登录,否则跳转到账号密码登录页面
-
+                $aUser = self::getUserIdByAutoRegister($user);
+                if($aUser) {
+                    // 唯一且密码为空, 自动登录
+                } else {
+                    // 有密码，账号密码登录
+                }
                 return $data;
             }
 
@@ -495,7 +500,7 @@ class User extends CActiveRecord
         $aUser = array();
         try {
             $aUser = Yii::app()->cnhutong_user->createCommand()
-                ->select('*')
+                ->select('id')
                 ->from('user')
                 ->where("id = :userId And password = '' And status = 1", array(':userId' => $userId))
                 ->queryAll();
