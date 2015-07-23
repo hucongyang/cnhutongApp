@@ -17,22 +17,26 @@ class ComDepartmentPicture extends CActiveRecord
      * @param $departmentId
      * @return array|bool
      */
-    public static function getSchoolInfoPicture($departmentId)
+    public function getSchoolInfoPicture($departmentId)
     {
         $pictures = array();
-        $pictures_model = Yii::app()->cnhutong_user->createCommand()
-            ->select('picture, desc')
-            ->from('com_department_picture')
-            ->where('department_id = :departmentId', array(':departmentId' => $departmentId))
-            ->queryAll();
-        if(!$pictures_model) {
-            return false;
-        }
-        foreach($pictures_model as $row) {
-            $pictures[] = array(
-                'picUrl' => $row['picture'],
-                'picInfo' => $row['desc']
-            );
+        try {
+            $pictures_model = Yii::app()->cnhutong_user->createCommand()
+                ->select('picture, desc')
+                ->from('com_department_picture')
+                ->where('department_id = :departmentId', array(':departmentId' => $departmentId))
+                ->queryAll();
+            if(!$pictures_model) {
+                return false;
+            }
+            foreach($pictures_model as $row) {
+                $pictures[] = array(
+                    'picUrl' => $row['picture'],
+                    'picInfo' => $row['desc']
+                );
+            }
+        } catch (Exception $e) {
+            error_log($e);
         }
         return $pictures;
     }

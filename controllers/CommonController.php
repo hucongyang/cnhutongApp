@@ -2,19 +2,28 @@
 
 class CommonController extends ApiPublicController
 {
+
     /**
-     * 获取校区列表      getAllSchools()
-     * @param userId int 用户id  非必填
-     * @return $result          调用返回结果
-     * @return $msg             调用返回结果说明
-     * @return $data             调用返回数据
+     * 获取校区列表               getAllSchools
+     * @userId  $userId int         -- 用户ID
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
      */
     public function actionGetAllSchools()
     {
         // 非必须
         $userId = Yii::app()->request->getParam('userId', NULL);
 
-        $data = ComDepartment::getAllSchools();
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
+
+        $data = ComDepartment::model()->getAllSchools();
         if(!$data) {
             $this->_return('MSG_ERR_UNKOWN');
         }
@@ -23,11 +32,11 @@ class CommonController extends ApiPublicController
 
     /**
      * 获取校区详细列表      getSchoolInfo()
-     * @param userId int 用户id  非必填
-     * @param departmentId int 校区对应ID 必填
-     * @return $result          调用返回结果
-     * @return $msg             调用返回结果说明
-     * @return $data             调用返回数据
+     * @userId userId int 用户id          --非必填
+     * @departmentId departmentId int    --校区对应ID 必填
+     * @return result          调用返回结果
+     * @return msg             调用返回结果说明
+     * @return data             调用返回数据
      */
     public function actionGetSchoolInfo()
     {
@@ -40,13 +49,21 @@ class CommonController extends ApiPublicController
         // 必须
         $departmentId = Yii::app()->request->getParam('departmentId', NULL);
 
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
+
         $data = array();
-        $school = ComDepartment::getSchoolInfo($departmentId);
+        $school = ComDepartment::model()->getSchoolInfo($departmentId);
         if(!$school) {
             $this->_return('MSG_ERR_FAIL_DEPARTMENT');
         }
         $data['school'] = $school;
-        $pictures = ComDepartmentPicture::getSchoolInfoPicture($departmentId);
+        $pictures = ComDepartmentPicture::model()->getSchoolInfoPicture($departmentId);
         if(!$pictures) {
             $data['pictures'] = [''];
 //            $this->_return('MSG_ERR_FAIL_DEPARTMENT');
