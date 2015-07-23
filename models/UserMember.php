@@ -25,7 +25,7 @@ class UserMember extends CActiveRecord
             $member_model = Yii::app()->cnhutong_user->createCommand()
                 ->select('id, member_id, status')
                 ->from('user_member')
-                ->where('user_id = :userId', array(':userId' => $userId))
+                ->where('user_id = :userId And status in (0,1)', array(':userId' => $userId))
                 ->queryAll();
             if(!$member_model) {
                 return false;
@@ -62,9 +62,18 @@ class UserMember extends CActiveRecord
                 return 10010;       // MSG_ERR_FAIL_USER
             }
             // 验证token
-            $userToken = UserToken::IsToken($userId, $token);
-            if($userToken) {
+            $userToken = UserToken::model()->IsToken($userId, $token);
+            if(!$userToken) {
                 return 10009;       // MSG_ERR_FAIL_TOKEN
+            }
+            // 验证学员ID数量，目前最多绑定3个
+            $countMemberId = self::getBindMemberNum($userId);
+            if($countMemberId <=0 || $countMemberId >= 3) {
+                return 20006;
+            }
+            //口令salt 不能为空
+            if(!$salt) {
+                return 40004;       // MSG_ERR_NULL_SALT
             }
             // 获取memberId
             $memberId = self::getMemberIdBySalt($salt);
@@ -87,6 +96,13 @@ class UserMember extends CActiveRecord
                         'create_ts' => $nowTime
                     )
                 );
+
+            //members
+            $data['members'] = self::getMembers($userId);
+            if(!$data['members']) {
+                $data['members'] = "尚未绑定学员id";
+            }
+
         } catch (Exception $e) {
             error_log($e);
         }
@@ -110,8 +126,8 @@ class UserMember extends CActiveRecord
                 return 10010;       // MSG_ERR_FAIL_USER
             }
             // 验证token
-            $userToken = UserToken::IsToken($userId, $token);
-            if($userToken) {
+            $userToken = UserToken::model()->IsToken($userId, $token);
+            if(!$userToken) {
                 return 10009;       // MSG_ERR_FAIL_TOKEN
             }
             // 验证要删除的memberId 是否存在
@@ -121,13 +137,23 @@ class UserMember extends CActiveRecord
             }
             // 验证通过后，解除学员id的绑定
             $delete_member = Yii::app()->cnhutong_user->createCommand()
-                ->delete('user_member',
-                         'user_id = :userId And member_id = :memberId',
-                        array(
-                            ':userId' => $userId,
-                            ':memberId' => $memberId
-                        )
+                ->update('user_member',
+                    array(
+                        'status' => 9
+                    ),
+                    'user_id = :userId And member_id = :memberId',
+                    array(
+                        ':userId' => $userId,
+                        ':memberId' => $memberId
+                    )
                 );
+
+            //members
+            $data['members'] = self::getMembers($userId);
+            if(!$data['members']) {
+                $data['members'] = "尚未绑定学员id";
+            }
+
         } catch (Exception $e) {
             error_log($e);
         }
@@ -169,7 +195,7 @@ class UserMember extends CActiveRecord
             $id = Yii::app()->cnhutong_user->createCommand()
                 ->select('id')
                 ->from('user_member')
-                ->where('user_id = :userId And memberId = :memberId',
+                ->where('user_id = :userId And member_id = :memberId',
                     array(
                         ':userId' => $userId,
                         ':memberId' => $memberId
@@ -201,5 +227,26 @@ class UserMember extends CActiveRecord
             error_log($e);
         }
         return $name;
+    }
+
+    /**
+     * 输入：App唯一标识ID
+     * 输出：该ID绑定的memberID数量
+     * @param $userId
+     * @return int
+     */
+    public function getBindMemberNum($userId)
+    {
+        $count = 0;
+        try {
+            $count = Yii::app()->cnhutong_user->createCommand()
+                ->select('count(id)')
+                ->from('user_member')
+                ->where('user_id = :userId And status = 1', array(':userId' => $userId))
+                ->queryScalar();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $count;
     }
 }

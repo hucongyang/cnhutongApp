@@ -36,6 +36,8 @@ $_error_code = array(
 		'MSG_ERR_NO_ADMIN'			=> array('20004', '管理员不存在或没有相关操作权限'),
 		'MSG_ERR_NO_MORE_LESSONS'	=> array('20005', '该学员课程已结束，不能再进行加课'),
 
+        'MSG_ERR_OVER_THREE_MEMBERID'     => array('20006', '该用户已经绑定3个学员ID'),
+
         'MSG_ERR_INVALID_BIND_MOBILE'       => array('30001', '该手机号码已被绑定'),
 
         'MSG_ERR_SALT'                  => array('40001', '口令错误'),
@@ -43,6 +45,10 @@ $_error_code = array(
         'MSG_ERR_INVALID_SALT'        => array('40002', '口令已被使用，失效'),
 
         'MSG_ERR_FAIL_MEMBER'         => array('40003', '传入的学员ID错误'),
+
+        'MSG_ERR_NULL_SALT'                  => array('40004', '口令为NULL'),
+
+        'MSG_MOBILE_PASSWORD_LOGIN'       => array('50000', '账号/密码登录'),
 
 		// 其它
 		'MSG_ERR_UNKOWN'			=> array('99999', '未知错误')

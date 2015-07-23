@@ -5,7 +5,7 @@ class MemberController extends ApiPublicController
 
     public function actionText()
     {
-        var_dump(MobileCheckcode::model()->getCheckNum(6,0,9));
+        var_dump(LogMobileCheckcode::model()->getCheckNum(6,0,9));
     }
     /**
      * 获取验证码                actionGetVerificationCode()
@@ -22,6 +22,14 @@ class MemberController extends ApiPublicController
         if(!isset($_REQUEST['mobile']) || !isset($_REQUEST['verifyType'])) {
             $this->_return('MSG_ERR_LESS_PARAM');
         }
+
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
 
         $mobile = Yii::app()->request->getParam('mobile', NUll);
         $type = Yii::app()->request->getParam('verifyType', NULL);
@@ -53,10 +61,11 @@ class MemberController extends ApiPublicController
     }
 
     /**
-     * 注册       actionRegister()
-     * @param $mobile int           --手机号码
-     * @param $password string      --密码（md5加密）
-     * @checkNum $checkNum int      --服务器发送的验证码
+     * 用户注册       actionRegister()
+     * @mobile $mobile int             --手机号码
+     * @password $password string      --密码（md5加密）
+     * @checkNum $checkNum int         --服务器发送的验证码
+     * @referee $referee string        --推荐人手机号
      * @return result          调用返回结果
      * @return msg             调用返回结果说明
      * @return data             调用返回数据
@@ -65,13 +74,22 @@ class MemberController extends ApiPublicController
     {
         // 检查参数
         if(!isset($_REQUEST['mobile']) || !isset($_REQUEST['password']) ||
-            !isset($_REQUEST['checkNum'])) {
+            !isset($_REQUEST['checkNum']) || !isset($_REQUEST['referee'])) {
             $this->_return('MSG_ERR_LESS_PARAM');
         }
 
         $mobile = Yii::app()->request->getParam('mobile', NULL);
         $password = Yii::app()->request->getParam('password', NULL);
         $checkNum = Yii::app()->request->getParam('checkNum', NULL);
+        $referee = Yii::app()->request->getParam('referee', NULL);
+
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
 
         if(!$this->isMobile($mobile)) {
             $this->_return('MSG_ERR_FAIL_PARAM');
@@ -81,13 +99,11 @@ class MemberController extends ApiPublicController
 //            $this->_return('MSG_ERR_FAIL_PARAM');
 //        }
         //根据手机号，密码，验证码注册新用户
-        $data = User::model()->register($mobile, $password, $checkNum);
+        $data = User::model()->register($mobile, $password, $checkNum, $referee, $version, $deviceId, $platform);
         if($data === 10003) {
             $this->_return("MSG_ERR_INVALID_MOBILE");
         } elseif ($data === 10005) {
             $this->_return("MSG_ERR_CODE_OVER_TIME");
-        } elseif ($data === 10006) {
-            $this->_return("MSG_ERR_UN_REGISTER_MOBILE");
         }
 
         // 记录log
@@ -122,14 +138,22 @@ class MemberController extends ApiPublicController
         $userId = Yii::app()->request->getParam('userId', NULL);
         $referee = Yii::app()->request->getParam('referee', NULL);
 
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
+
         if(!$this->isMobile($mobile)) {
             $this->_return('MSG_ERR_FAIL_PARAM');
         }
 
         // 根据手机号码，密码，验证码，登录token，用户id 绑定手机号码
         $data = User::model()->bindMobile($mobile, $password, $checkNum, $token, $userId, $referee);
-        if($data === 10002) {
-            $this->_return("MSG_ERR_FAIL_PARAM");
+        if($data === 10010) {
+            $this->_return("MSG_ERR_FAIL_USER");
         } elseif ($data === 10005) {
             $this->_return("MSG_ERR_CODE_OVER_TIME");
         } elseif ($data === 10009) {
@@ -159,7 +183,9 @@ class MemberController extends ApiPublicController
 
         // 自动注册
         $data = User::model()->autoRegister($version, $deviceId, $platform, $channel, $appVersion, $osVersion, $appId);
-
+        if($data === 50000) {
+            $this->_return('MSG_MOBILE_PASSWORD_LOGIN');
+        }
         // 记录log
 
         $this->_return('MSG_SUCCESS', $data);
@@ -184,6 +210,14 @@ class MemberController extends ApiPublicController
         $token = Yii::app()->request->getParam('token', NULL);
         $salt = Yii::app()->request->getParam('salt', NULL);
 
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
+
         // 绑定学员信息
         $data = UserMember::model()->bindMember($userId, $token, $salt);
         if($data === 10010) {
@@ -194,6 +228,10 @@ class MemberController extends ApiPublicController
             $this->_return('MSG_ERR_SALT');
         } elseif ($data === 40002) {
             $this->_return('MSG_ERR_INVALID_SALT');
+        } elseif ($data === 40004) {
+            $this->_return('MSG_ERR_NULL_SALT');
+        } elseif ($data === 20006) {
+            $this->_return('MSG_ERR_OVER_THREE_MEMBERID');
         }
         // 记录log
 
@@ -218,6 +256,14 @@ class MemberController extends ApiPublicController
         $userId = Yii::app()->request->getParam('userId', NULL);
         $token = Yii::app()->request->getParam('token', NULL);
         $memberId = Yii::app()->request->getParam('memberId', NULL);
+
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
 
         // 解除绑定学员id
         $data = UserMember::model()->removeMember($userId, $token, $memberId);
@@ -250,6 +296,14 @@ class MemberController extends ApiPublicController
 
         $mobile = Yii::app()->request->getParam('mobile', NULL);
         $password = Yii::app()->request->getParam('password', NULL);
+
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
 
         if(!$this->isMobile($mobile)) {
             $this->_return('MSG_ERR_FAIL_MOBILE');
@@ -289,9 +343,17 @@ class MemberController extends ApiPublicController
         $token = Yii::app()->request->getParam('token', NULL);
         $userId = Yii::app()->request->getParam('userId', NULL);
 
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
+
         $data = User::model()->userVerify($userId, $token);
-        if($data === 10002) {
-            $this->_return('MSG_ERR_FAIL_PARAM');
+        if($data === 10010) {
+            $this->_return('MSG_ERR_FAIL_USER');
         } elseif ($data === 10009) {
             $this->_return('MSG_ERR_FAIL_TOKEN');
         }
@@ -305,7 +367,7 @@ class MemberController extends ApiPublicController
      * 用户重置密码 actionResetPassword()
      *
      * @param $mobile string 注册用手机号
-     * @param $password string 密码(未加密)
+     * @param $password string 密码(MD5加密)
      * @param $checkNum string 服务器验证码
      * @return $result          调用返回结果
      * @return $msg             调用返回结果说明
@@ -322,13 +384,21 @@ class MemberController extends ApiPublicController
         $password = Yii::app()->request->getParam('password', NULL);
         $checkNum = Yii::app()->request->getParam('checkNum', NULL);
 
+        $version            = Yii::app()->request->getParam('version', NULL);
+        $deviceId           = Yii::app()->request->getParam('deviceId', NULL);
+        $platform           = Yii::app()->request->getParam('platform', NULL);
+        $channel            = Yii::app()->request->getParam('channel', NULL);
+        $appVersion         = Yii::app()->request->getParam('appVersion', NULL);
+        $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
+        $appId              = Yii::app()->request->getParam('appId', NULL);
+
         if(!$this->isMobile($mobile)) {
             $this->_return('MSG_ERR_FAIL_PARAM');
         }
 
-        if(!$this->isPasswordValid($password)) {
-            $this->_return('MSG_ERR_FAIL_PARAM');
-        }
+//        if(!$this->isPasswordValid($password)) {
+//            $this->_return('MSG_ERR_FAIL_PARAM');
+//        }
         //验证是否为合理的验证码格式  isCheckNum()
 
         $data = User::model()->resetPassword($mobile, $password, $checkNum);
