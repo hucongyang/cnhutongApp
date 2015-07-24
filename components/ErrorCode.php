@@ -50,6 +50,12 @@ $_error_code = array(
 
         'MSG_MOBILE_PASSWORD_LOGIN'       => array('50000', '账号/密码登录'),
 
+        'MSG_ERR_LESSON_ARRANGE_ID'       => array('60001', '课程的唯一排课编号错误'),
+
+        'MSG_ERR_LESSON_STUDENT_ID'       => array('60002', '课时唯一编号错误'),
+
+        'MSG_ERR_SCORE'                     => array('70001', '评分不在范围内(0-5分)'),
+
 		// 其它
 		'MSG_ERR_UNKOWN'			=> array('99999', '未知错误')
 );

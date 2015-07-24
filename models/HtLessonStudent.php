@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Administrator
- * Date: 2015/7/8
- * Time: 10:10
- */
 
 class HtLessonStudent extends CActiveRecord
 {
@@ -31,14 +25,20 @@ class HtLessonStudent extends CActiveRecord
         $nowTime = date('Y-m-d');
         try {
             // 用户ID验证
-            $isUserId = User::IsUserId($userId);
-            if(!$isUserId) {
+            $user = User::model()->IsUserId($userId);
+            if(!$user) {
                 return 10010;       // MSG_ERR_FAIL_USER
             }
             // 用户token验证
-            $isToken = UserToken::IsToken($userId, $token);
-            if(!$isToken) {
+            $userToken = UserToken::model()->IsToken($userId, $token);
+//            var_dump($userToken);exit;
+            if(!$userToken) {
                 return 10009;       // MSG_ERR_FAIL_TOKEN
+            }
+
+            $isExistUserMemberId = UserMember::model()->IsExistMemberId($userId, $memberId);
+            if(!$isExistUserMemberId) {
+                return 40003;        // MSG_ERR_FAIL_MEMBER
             }
 
             $result = Yii::app()->cnhutong->createCommand()
@@ -55,6 +55,15 @@ class HtLessonStudent extends CActiveRecord
                 ->group('course_id')
                 ->order('lessonSerial asc')
                 ->queryAll();
+
+            // 判断数据是否为空数组
+            if(ApiPublicController::array_is_null($result)) {
+                $data[] = [];
+            }
+
+//            if(empty($result)) {
+//                $data[] = [];
+//            }
 
             foreach($result as $row) {
                 // 获取数据
@@ -95,14 +104,20 @@ class HtLessonStudent extends CActiveRecord
         $data = array();
         try {
             // 用户ID验证
-            $isUserId = User::IsUserId($userId);
-            if(!$isUserId) {
+            $user = User::model()->IsUserId($userId);
+            if(!$user) {
                 return 10010;       // MSG_ERR_FAIL_USER
             }
             // 用户token验证
-            $isToken = UserToken::IsToken($userId, $token);
-            if(!$isToken) {
+            $userToken = UserToken::model()->IsToken($userId, $token);
+//            var_dump($userToken);exit;
+            if(!$userToken) {
                 return 10009;       // MSG_ERR_FAIL_TOKEN
+            }
+
+            $isExistUserMemberId = UserMember::model()->IsExistMemberId($userId, $memberId);
+            if(!$isExistUserMemberId) {
+                return 40003;        // MSG_ERR_FAIL_MEMBER
             }
 
             $result = Yii::app()->cnhutong->createCommand()
@@ -114,6 +129,11 @@ class HtLessonStudent extends CActiveRecord
                     )
                 )
                 ->queryAll();
+
+            // 判断数据是否为空数组
+            if(ApiPublicController::array_is_null($result)) {
+                $data[] = [];
+            }
 
             foreach($result as $row) {
                 // 获取数据
@@ -141,40 +161,6 @@ class HtLessonStudent extends CActiveRecord
                 $data[] = $subject;
             }
 
-//            $result = Yii::app()->cnhutong->createCommand()
-//                ->select('id, course_id, lesson_arrange_id as lessonArrangeId, teacher_id as teacherId,
-//                lesson_serial as lessonSerial,
-//                department_id as departmentId')
-//                ->from('ht_lesson_student')
-//                ->where('student_id = :studentId',
-//                    array(
-//                        ':studentId' => $memberId
-//                    )
-//                )
-//                ->queryAll();
-//
-//            foreach($result as $row) {
-//                // 获取数据
-//                $subject = array();
-//                $subject['id']                                 = $row['id'];
-//                $subject['courseId']                          = $row['course_id'];
-//                $subjectId = ApiPublicLesson::model()->getSubjectIdByCourseId($subject['courseId'] );
-//                $subject['subjectId']                         = $subjectId;
-//                $subject['lessonArrangeId']                  = $row['lessonArrangeId'];
-//                $subjectInfo = ApiPublicLesson::model()->getSubjectInfoById($subjectId);
-//                $subject['subjectName']                       = $subjectInfo['title'];
-//                $subject['teacherId']                           = $row['teacherId'];
-//                $subject['teacherName']                         = ApiPublicLesson::model()->getNameByMemberId($row['teacherId']);
-//                $subject['lessonSerial']                      = $row['lessonSerial'];
-//                $lessonCount = ApiPublicLesson::model()->getLessonCount($subject['lessonArrangeId']);
-//                $subject['lessonProcess']                      = $row['lessonSerial'] . '/' . $lessonCount;
-//                $subject['lessonStatus']                      = $row['lessonSerial'];
-//                $subject['departmentId']                      = $row['departmentId'];
-//                $departmentInfo = ApiPublicLesson::model()->getDepartmentInfoById($subject['departmentId']);
-//                $subject['departmentName']                    = $departmentInfo['name'];
-//                $data['subject'] = $subject;
-//            }
-
 //            $data = $result;
         } catch (Exception $e) {
             error_log($e);
@@ -195,14 +181,25 @@ class HtLessonStudent extends CActiveRecord
         $data = array();
         try {
             // 用户ID验证
-            $isUserId = User::IsUserId($userId);
-            if(!$isUserId) {
+            $user = User::model()->IsUserId($userId);
+            if(!$user) {
                 return 10010;       // MSG_ERR_FAIL_USER
             }
             // 用户token验证
-            $isToken = UserToken::IsToken($userId, $token);
-            if(!$isToken) {
+            $userToken = UserToken::model()->IsToken($userId, $token);
+//            var_dump($userToken);exit;
+            if(!$userToken) {
                 return 10009;       // MSG_ERR_FAIL_TOKEN
+            }
+
+            $isExistUserMemberId = UserMember::model()->IsExistMemberId($userId, $memberId);
+            if(!$isExistUserMemberId) {
+                return 40003;        // MSG_ERR_FAIL_MEMBER
+            }
+
+            $isLessonArrangeId = self::IsLessonArrangeId($memberId, $lessonArrangeId);
+            if(!$isLessonArrangeId) {
+                return 60001;
             }
 
             $result = Yii::app()->cnhutong->createCommand()
@@ -217,6 +214,11 @@ class HtLessonStudent extends CActiveRecord
                 )
                 ->order('date asc')
                 ->queryAll();
+
+            // 判断数据是否为空数组
+            if(ApiPublicController::array_is_null($result)) {
+                $data[] = [];
+            }
 
             foreach($result as $row) {
                 // 获取数据
@@ -250,14 +252,25 @@ class HtLessonStudent extends CActiveRecord
         $data = array();
         try {
             // 用户ID验证
-            $isUserId = User::IsUserId($userId);
-            if(!$isUserId) {
+            $user = User::model()->IsUserId($userId);
+            if(!$user) {
                 return 10010;       // MSG_ERR_FAIL_USER
             }
             // 用户token验证
-            $isToken = UserToken::IsToken($userId, $token);
-            if(!$isToken) {
+            $userToken = UserToken::model()->IsToken($userId, $token);
+//            var_dump($userToken);exit;
+            if(!$userToken) {
                 return 10009;       // MSG_ERR_FAIL_TOKEN
+            }
+
+            $isExistUserMemberId = UserMember::model()->IsExistMemberId($userId, $memberId);
+            if(!$isExistUserMemberId) {
+                return 40003;        // MSG_ERR_FAIL_MEMBER
+            }
+
+            $isLessonStudentId = self::IsLessonStudentId($memberId, $lessonStudentId);
+            if(!$isLessonStudentId) {
+                return 60002;
             }
 
             $result = Yii::app()->cnhutong->createCommand()
@@ -272,6 +285,11 @@ class HtLessonStudent extends CActiveRecord
                 )
                 ->order('date')
                 ->queryAll();
+
+            // 判断数据是否为空数组
+            if(ApiPublicController::array_is_null($result)) {
+                $data[] = [];
+            }
 
             foreach($result as $row) {
                 // 获取数据
@@ -317,14 +335,29 @@ class HtLessonStudent extends CActiveRecord
         $data = array();
         try {
             // 用户ID验证
-            $isUserId = User::IsUserId($userId);
-            if(!$isUserId) {
+            $user = User::model()->IsUserId($userId);
+            if(!$user) {
                 return 10010;       // MSG_ERR_FAIL_USER
             }
             // 用户token验证
-            $isToken = UserToken::IsToken($userId, $token);
-            if(!$isToken) {
+            $userToken = UserToken::model()->IsToken($userId, $token);
+//            var_dump($userToken);exit;
+            if(!$userToken) {
                 return 10009;       // MSG_ERR_FAIL_TOKEN
+            }
+
+            $isExistUserMemberId = UserMember::model()->IsExistMemberId($userId, $memberId);
+            if(!$isExistUserMemberId) {
+                return 40003;        // MSG_ERR_FAIL_MEMBER
+            }
+
+            $isLessonStudentId = self::IsLessonStudentId($memberId, $lessonStudentId);
+            if(!$isLessonStudentId) {
+                return 60002;
+            }
+
+            if($score < 0 || $score > 5) {
+                return 70001;
             }
 
             $result = Yii::app()->cnhutong->createCommand()
@@ -339,6 +372,10 @@ class HtLessonStudent extends CActiveRecord
                         ':id' => $lessonStudentId
                     )
                 );
+
+            if(empty($result)) {
+                $data[] = [];
+            }
 
 //            $data = $result;
         } catch (Exception $e) {
@@ -390,6 +427,62 @@ class HtLessonStudent extends CActiveRecord
                 return "顺延补课";
             case "8":
                 return "补课后弃课";
+            default:
+                return '';
         }
+    }
+
+    /**
+     * 输入：用户当前绑定的学员所对应的ID
+     * 输出：该ID所对应的 课程唯一排课编号lessonArrangeId
+     * @param $memberId
+     * @param $lessonArrangeId
+     * @return array
+     */
+    public function IsLessonArrangeId($memberId, $lessonArrangeId)
+    {
+        $arr = array();
+        try {
+            $arr = Yii::app()->cnhutong->createCommand()
+                ->select('id')
+                ->from('ht_lesson_student')
+                ->where('student_id = :memberId And lesson_arrange_id = :lessonArrangeId',
+                    array(
+                        ':memberId' => $memberId,
+                        ':lessonArrangeId' => $lessonArrangeId
+                    )
+                )
+                ->queryAll();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $arr;
+    }
+
+    /**
+     * 输入：用户当前绑定的学员所对应的ID
+     * 输出：该ID所对应的 课时唯一编号 id
+     * @param $memberId
+     * @param $lessonStudentId
+     * @return array
+     */
+    public function IsLessonStudentId($memberId, $lessonStudentId)
+    {
+        $id = '';
+        try {
+            $id = Yii::app()->cnhutong->createCommand()
+                ->select('id')
+                ->from('ht_lesson_student')
+                ->where('student_id = :memberId And id = :lessonStudentId',
+                    array(
+                        ':memberId' => $memberId,
+                        ':lessonStudentId' => $lessonStudentId
+                    )
+                )
+                ->queryScalar();
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return $id;
     }
 }

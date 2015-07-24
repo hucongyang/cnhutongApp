@@ -20,10 +20,10 @@ class ApiPublicController extends Controller
         // TODO : 此处考虑记录访问LOG
 
         // 秦汉胡同APP log公共参数 检查参数
-        if(!isset($_REQUEST['version']) || !isset($_REQUEST['deviceId']) || !isset($_REQUEST['platform']) || !isset($_REQUEST['channel'])
-            || !isset($_REQUEST['appVersion']) || !isset($_REQUEST['osVersion']) || !isset($_REQUEST['appId'])) {
-            $this->_return('MSG_ERR_LESS_PARAM');
-        }
+//        if(!isset($_REQUEST['version']) || !isset($_REQUEST['deviceId']) || !isset($_REQUEST['platform']) || !isset($_REQUEST['channel'])
+//            || !isset($_REQUEST['appVersion']) || !isset($_REQUEST['osVersion']) || !isset($_REQUEST['appId'])) {
+//            $this->_return('MSG_ERR_LESS_PARAM');
+//        }
     }
 
 	/*******************************************************
@@ -372,6 +372,29 @@ class ApiPublicController extends Controller
         return $i;
     }
 
-
+    /**
+     * 判断数组（多维）数值是否为空
+     * @param null $arr
+     * @return bool
+     */
+    public static function array_is_null($arr = null)
+    {
+        if(is_array($arr)) {
+            foreach($arr as $k => $v) {
+                if($v && is_array($v)) {
+                    return false;
+                }
+                $t = self::array_is_null($v);
+                if(!$t) {
+                    return false;
+                }
+            }
+            return true;
+        } elseif (!$arr) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 }
