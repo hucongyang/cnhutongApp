@@ -132,7 +132,8 @@ class LogMobileCheckcode extends CActiveRecord
 
         // 短信接口
 
-        return true;
+//        return true;
+        return $checkNum;       // 返回的验证码目前测试用，正式上线去除
     }
 
     /**

@@ -9,8 +9,8 @@ class MemberController extends ApiPublicController
     }
     /**
      * 获取验证码                actionGetVerificationCode()
-     * @param $mobile string    --手机号码
-     * @param $type int        --类型：1表示注册新用户，2表示找回密码,3表示绑定手机
+     * @mobile $mobile string    --手机号码
+     * @type $type int        --类型：1表示注册新用户，2表示找回密码,3表示绑定手机
      * @return result          调用返回结果
      * @return msg             调用返回结果说明
      * @return data             调用返回数据
@@ -57,7 +57,39 @@ class MemberController extends ApiPublicController
 
         // 记录log
 
-        $this->_return("MSG_SUCCESS");
+        $this->_return("MSG_SUCCESS", $data);   // $data为返回的验证码目前测试用，正式上线去除$data
+    }
+
+    /**
+     * 用户使用手机号码获取验证码后验证验证码
+     * @mobile $mobile int             --手机号码
+     * @checkNum $checkNum int         --服务器发送的验证码
+     */
+    public function actionCheckNum()
+    {
+        // 检查参数
+        if(!isset($_REQUEST['mobile']) || !isset($_REQUEST['checkNum'])) {
+            $this->_return('MSG_ERR_LESS_PARAM');
+        }
+
+        $mobile = Yii::app()->request->getParam('mobile', NULL);
+        $checkNum = Yii::app()->request->getParam('checkNum', NULL);
+
+        if(!$this->isMobile($mobile)) {
+            $this->_return('MSG_ERR_FAIL_MOBILE');
+        }
+
+        // 验证根据手机号收到的验证码
+        $data = User::model()->checkNum($mobile, $checkNum);
+        if($data === 10003) {
+            $this->_return("MSG_ERR_INVALID_MOBILE");
+        } elseif ($data === 10005) {
+            $this->_return("MSG_ERR_CODE_OVER_TIME");
+        }
+
+        // 记录log
+
+        $this->_return('MSG_SUCCESS', $data);
     }
 
     /**

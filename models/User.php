@@ -13,6 +13,28 @@ class User extends CActiveRecord
     }
 
     /**
+     * 用户使用手机号码获取验证码后验证验证码
+     * @param $mobile
+     * @param $checkNum
+     * @return array
+     */
+    public function checkNum($mobile, $checkNum)
+    {
+        try {
+            if(self::getUserByMobile($mobile)) {
+                return 10003;       // MSG_ERR_INVALID_MOBILE
+            }
+            // 验证码是否过期
+            if(!LogMobileCheckcode::model()->checkCode($mobile, $checkNum)) {
+                return 10005;       //  MSG_ERR_CODE_OVER_TIME   验证码过期
+            }
+        } catch (Exception $e) {
+            error_log($e);
+        }
+        return true;
+    }
+
+    /**
      * 用户使用手机号进行注册新用户
      * @param $mobile           --手机号
      * @param $password         --密码

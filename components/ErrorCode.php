@@ -29,6 +29,8 @@ $_error_code = array(
 
         'MSG_ERR_FAIL_MOBILE'       => array('10011', '手机号码错误'),
 
+        'MSG_ERR_FAIL_SUBJECT'       => array('10012', '课程错误'),
+
 		// 用户相关错误码
         'MSG_NO_MEMBER' 			=> array('20001', '没有找到该姓名的用户'),
         'MSG_NO_LESSON' 			=> array('20002', '该学员当天没有课程'),
