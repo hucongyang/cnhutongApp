@@ -124,7 +124,11 @@ class MemberController extends ApiPublicController
         $appId              = Yii::app()->request->getParam('appId', NULL);
 
         if(!$this->isMobile($mobile)) {
-            $this->_return('MSG_ERR_FAIL_PARAM');
+            $this->_return('MSG_ERR_FAIL_MOBILE');
+        }
+
+        if(!empty($referee) && !$this->isMobile($referee)) {
+            $this->_return('MSG_ERR_FAIL_REFEREE_MOBILE');
         }
 
 //        if(!$this->isPasswordValid($password)) {

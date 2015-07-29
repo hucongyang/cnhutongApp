@@ -73,6 +73,10 @@ class User extends CActiveRecord
                         'last_login_time' => $lastLoginTime,
                         'recommand' => $recommand
                     ));
+
+            //获得userId
+            $userId = Yii::app()->cnhutong_user->getLastInsertID();
+
             //注册成功,验证码使用后改变验证码status状态
             Yii::app()->cnhutong_user->createCommand()
                 ->update('log_mobile_checkcode',
@@ -83,9 +87,8 @@ class User extends CActiveRecord
                     array(':mobile' => $mobile)
                 );
 
-            //获得userId
-            //$userId = Yii::app()->cnhutong_user->getLastInsertID();
-            $userId = self::getUserByMobile($mobile);
+
+//            $userId = self::getUserByMobile($mobile);
 //            if(!$userId) {
 //                return 10006;       //  MSG_ERR_UN_REGISTER_MOBILE
 //            }
@@ -207,9 +210,10 @@ class User extends CActiveRecord
                 $data['token'] = UserToken::model()->getToken($userId);
                 //用户昵称，积分，等级
                 $userMessage = self::getUserMessageByUserId($userId);
-                $data['nickname'] = $userMessage['username'];
-                $data['points'] = $userMessage['score'];
-                $data['level'] = $userMessage['level'];
+                $data['mobile']             = $userMessage['mobile'];
+                $data['nickname']           = $userMessage['username'];
+                $data['points']             = $userMessage['score'];
+                $data['level']              = $userMessage['level'];
                 //members
                 $data['members'] = UserMember::model()->getMembers($userId);
                 if(!$data['members']) {
@@ -227,9 +231,10 @@ class User extends CActiveRecord
                     $data['token'] = UserToken::model()->getToken($aUser);
                     //用户昵称，积分，等级
                     $userMessage = self::getUserMessageByUserId($aUser);
-                    $data['nickname'] = $userMessage['username'];
-                    $data['points'] = $userMessage['score'];
-                    $data['level'] = $userMessage['level'];
+                    $data['mobile']             = $userMessage['mobile'];
+                    $data['nickname']           = $userMessage['username'];
+                    $data['points']             = $userMessage['score'];
+                    $data['level']              = $userMessage['level'];
                     //members
                     $data['members'] = UserMember::model()->getMembers($aUser);
                     if(!$data['members']) {
@@ -307,9 +312,10 @@ class User extends CActiveRecord
             $data['token'] = UserToken::model()->getToken($userId);
             //用户昵称，积分，等级
             $userMessage = self::getUserMessageByUserId($userId);
-            $data['nickname'] = $userMessage['username'];
-            $data['points'] = $userMessage['score'];
-            $data['level'] = $userMessage['level'];
+            $data['mobile']             = $userMessage['mobile'];
+            $data['nickname']           = $userMessage['username'];
+            $data['points']             = $userMessage['score'];
+            $data['level']              = $userMessage['level'];
             //members
             $data['members'] = UserMember::model()->getMembers($userId);
             if(!$data['members']) {
@@ -347,9 +353,10 @@ class User extends CActiveRecord
             $data['token'] = UserToken::model()->getToken($userId);
             //用户昵称，积分，等级
             $userMessage = self::getUserMessageByUserId($userId);
-            $data['nickname'] = $userMessage['username'];
-            $data['points'] = $userMessage['score'];
-            $data['level'] = $userMessage['level'];
+            $data['mobile']             = $userMessage['mobile'];
+            $data['nickname']           = $userMessage['username'];
+            $data['points']             = $userMessage['score'];
+            $data['level']              = $userMessage['level'];
             //members
             $data['members'] = UserMember::model()->getMembers($userId);
             if(!$data['members']) {
@@ -386,9 +393,10 @@ class User extends CActiveRecord
             $data['token'] = UserToken::model()->getToken($userId);
             //用户昵称，积分，等级
             $userMessage = self::getUserMessageByUserId($userId);
-            $data['nickname'] = $userMessage['username'];
-            $data['points'] = $userMessage['score'];
-            $data['level'] = $userMessage['level'];
+            $data['mobile']             = $userMessage['mobile'];
+            $data['nickname']           = $userMessage['username'];
+            $data['points']             = $userMessage['score'];
+            $data['level']              = $userMessage['level'];
             //members
             $data['members'] = UserMember::model()->getMembers($userId);
             if(!$data['members']) {
@@ -446,9 +454,10 @@ class User extends CActiveRecord
             $data['token'] = UserToken::model()->getToken($userId);
             //用户昵称，积分，等级
             $userMessage = self::getUserMessageByUserId($userId);
-            $data['nickname'] = $userMessage['username'];
-            $data['points'] = $userMessage['score'];
-            $data['level'] = $userMessage['level'];
+            $data['mobile']             = $userMessage['mobile'];
+            $data['nickname']           = $userMessage['username'];
+            $data['points']             = $userMessage['score'];
+            $data['level']              = $userMessage['level'];
             //members
             $data['members'] = UserMember::model()->getMembers($userId);
             if(!$data['members']) {
@@ -560,7 +569,7 @@ class User extends CActiveRecord
         $userMessage = array();
         try {
             $userMessage = Yii::app()->cnhutong_user->createCommand()
-                ->select('id, username, score, level')
+                ->select('id, mobile, username, score, level')
                 ->from('user')
                 ->where('id = :userId', array(':userId' => $userId))
                 ->queryRow();

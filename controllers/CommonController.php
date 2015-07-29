@@ -129,6 +129,9 @@ class CommonController extends ApiPublicController
         $osVersion          = Yii::app()->request->getParam('osVersion', NULL);
         $appId              = Yii::app()->request->getParam('appId', NULL);
 
+        $data['ads']              = ComAds::model()->getAds();
+        $data['version']         = ComChannel::model()->getAppVersion();
 
+        $this->_return('MSG_SUCCESS', $data);
     }
 }

@@ -29,6 +29,8 @@ $_error_code = array(
 
         'MSG_ERR_FAIL_MOBILE'       => array('10011', '手机号码错误'),
 
+        'MSG_ERR_FAIL_REFEREE_MOBILE'       => array('10013', '推荐人手机号码错误'),
+
         'MSG_ERR_FAIL_SUBJECT'       => array('10012', '课程错误'),
 
 		// 用户相关错误码
